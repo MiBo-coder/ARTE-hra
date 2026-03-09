@@ -563,10 +563,10 @@ body::after{
   <div class="stats-box">
     <h2>ŽEBŘÍČEK</h2>
     <div class="stats-tabs">
-      <button class="tab-btn active" onclick="loadStats(1,this)">CHYTAČ</button>
-      <button class="tab-btn" onclick="loadStats(2,this)">KAPŘI</button>
-      <button class="tab-btn" onclick="loadStats(3,this)">ROŠT</button>
-      <button class="tab-btn" onclick="loadStats(4,this)">HAD</button><button class="tab-btn" onclick="loadStats(41,this)">HAD POMALU</button><button class="tab-btn" onclick="loadStats(42,this)">HAD STŘEDNĚ</button><button class="tab-btn" onclick="loadStats(43,this)">HAD RYCHLE</button>
+      <button class="tab-btn active" onclick="loadStats(1,this)">CHYTAČ REKVIZIT</button>
+      <button class="tab-btn" onclick="loadStats(2,this)">KAPR INVADERS</button>
+      <button class="tab-btn" onclick="loadStats(3,this)">TOWER JUMP</button>
+      <button class="tab-btn" onclick="loadStatsHad(this)">HAD</button>
     </div>
     <div id="lbContent"></div>
     <div style="font-size:18px;color:#446;margin:10px 0;">— Přijď nás vidět naživo! —</div>
@@ -604,10 +604,10 @@ body::after{
   <div class="modal-box" style="max-width:460px;width:94%">
     <h3>ŽEBŘÍČEK</h3>
     <div class="stats-tabs" style="margin:10px 0">
-      <button class="tab-btn active" onclick="loadStatsInline(1,this)">CHYTAČ</button>
-      <button class="tab-btn" onclick="loadStatsInline(2,this)">KAPŘI</button>
-      <button class="tab-btn" onclick="loadStatsInline(3,this)">ROŠT</button>
-      <button class="tab-btn" onclick="loadStatsInline(4,this)">HAD</button><button class="tab-btn" onclick="loadStatsInline(41,this)">HAD POMALU</button><button class="tab-btn" onclick="loadStatsInline(42,this)">HAD STŘEDNĚ</button><button class="tab-btn" onclick="loadStatsInline(43,this)">HAD RYCHLE</button>
+      <button class="tab-btn active" onclick="loadStatsInline(1,this)">CHYTAČ REKVIZIT</button>
+      <button class="tab-btn" onclick="loadStatsInline(2,this)">KAPR INVADERS</button>
+      <button class="tab-btn" onclick="loadStatsInline(3,this)">TOWER JUMP</button>
+      <button class="tab-btn" onclick="loadStatsHadInline(this)">HAD</button>
     </div>
     <div id="lbInline" style="max-height:220px;overflow-y:auto;"></div>
     <button class="btn btn-ghost" onclick="closeStatsOverlay()" style="width:100%;margin-top:10px;">ZAVŘÍT</button>
@@ -885,17 +885,49 @@ async function loadStats(gid,btn){
   if(btn)btn.classList.add('active');
   renderLeaderboard('lbContent',gid);
 }
+async function loadStatsHad(btn){
+  document.querySelectorAll('#screen-stats .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderLeaderboardHad('lbContent');
+}
 async function loadStatsInline(gid,btn){
   document.querySelectorAll('#statsOverlay .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   renderLeaderboard('lbInline',gid);
+}
+async function loadStatsHadInline(btn){
+  document.querySelectorAll('#statsOverlay .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderLeaderboardHad('lbInline');
+}
+
+async function renderLeaderboardHad(elId){
+  const el=document.getElementById(elId);
+  if(!SB_OK){el.innerHTML=`<div style="font-size:18px;color:#446;padding:16px;text-align:center">Supabase není nastaven.</div>`;return;}
+  el.innerHTML=`<div style="font-size:18px;color:#446;padding:12px;text-align:center">Načítám...</div>`;
+  const subtitles={41:'POMALU',42:'STŘEDNĚ',43:'RYCHLE'};
+  try{
+    const results = await Promise.all([41,42,43].map(gid=>
+      fetch(`${SB_URL}/rest/v1/scores?game_id=eq.${gid}&order=score.desc&limit=10`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json())
+    ));
+    let html='';
+    [41,42,43].forEach((gid,idx)=>{
+      const data=results[idx];
+      html+=`<div style="color:var(--gold);font-size:clamp(16px,2.5vw,20px);margin:14px 0 6px;letter-spacing:2px;">— HAD ${subtitles[gid]} —</div>`;
+      if(!data.length){html+=`<div style="font-size:16px;color:#446;padding:6px;text-align:center">Zatím žádné výsledky</div>`;return;}
+      const medals=['1.','2.','3.'];
+      html+=`<div class="lb-row header"><span>#</span><span>HRÁČ</span><span>SKÓRE</span></div>`;
+      data.forEach((row,i)=>{const me=row.player_name===playerName;html+=`<div class="lb-row ${me?'me':''}"><span>${medals[i]||i+1+'.'}</span><span>${row.player_name}</span><span class="lb-score">${row.score}</span></div>`;});
+    });
+    el.innerHTML=html;
+  }catch(e){el.innerHTML=`<div style="font-size:18px;color:#833;padding:12px;text-align:center">Chyba načítání</div>`;}
 }
 async function renderLeaderboard(elId,gid){
   const el=document.getElementById(elId);
   if(!SB_OK){el.innerHTML=`<div style="font-size:18px;color:#446;padding:16px;text-align:center">Supabase není nastaven.<br>Doplň SB_URL a SB_KEY v kódu.</div>`;return;}
   el.innerHTML=`<div style="font-size:18px;color:#446;padding:12px;text-align:center">Načítám...</div>`;
   try{
-    const r=await fetch(`${SB_URL}/rest/v1/scores?game_id=eq.${gid}&order=score.desc&limit=15`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const r=await fetch(`${SB_URL}/rest/v1/scores?game_id=eq.${gid}&order=score.desc&limit=10`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
     const data=await r.json();
     if(!data.length){el.innerHTML=`<div style="font-size:18px;color:#446;padding:12px;text-align:center">Zatím žádné výsledky</div>`;return;}
     const medals=['1.','2.','3.'];
@@ -1234,7 +1266,7 @@ function game1(canvas){
     {img:'policie', val:-20, good:false},
   ];
   const PW=52,PH=64;
-  const st={score:0,lives:3,timeLeft:60,px:W/2-PW/2,py:H-PH-30,spd:4,pvy:0,onGround:true,items:[],msgs:[],frame:0,active:true};
+  const st={score:0,lives:3,timeLeft:60,px:W/2-PW/2,py:H-PH-30,spd:5.5,pvy:0,onGround:true,items:[],msgs:[],frame:0,active:true};
   const G1_FLOOR=H-PH-30;
   _game1Timer=setInterval(()=>{
     if(!st.active||!document.getElementById('screen-game').classList.contains('active')){clearInterval(_game1Timer);_game1Timer=null;return;}
@@ -1304,7 +1336,7 @@ function game2(canvas){
     player:{x:W/2-20,y:Math.floor(H*0.87)-60,w:40,h:60,spd:5},
     hooks:[],fishBullets:[],carps:[],
     dir:1,carpTimer:0,shootTimer:0,shotCool:0,
-    frame:0,active:true,level:1,hookInAir:false,levelDelay:false
+    frame:0,active:true,level:1,levelDelay:false,hitCool:0
   };
   document.getElementById('hudLives').textContent='+ + +';
   function initCarps(){
@@ -1353,11 +1385,12 @@ function game2(canvas){
     document.getElementById('hudScore').textContent=`${st.elapsed}s | +${st.score}b`;
     if(K.left&&st.player.x>0)st.player.x-=st.player.spd;
     if(K.right&&st.player.x+st.player.w<W)st.player.x+=st.player.spd;
-    if((K.space||K.up)&&st.shotCool<=0&&!st.hookInAir){
-      st.hooks=[];st.hooks.push({x:st.player.x+st.player.w/2-2,y:st.player.y,w:4,h:22,vy:-6});
-      st.hookInAir=true;st.shotCool=22;
+    if((K.space||K.up)&&st.shotCool<=0&&st.hooks.length===0&&st.hitCool<=0){
+      st.hooks.push({x:st.player.x+st.player.w/2-2,y:st.player.y,w:4,h:22,vy:-9});
+      st.shotCool=18;
     }
     if(st.shotCool>0)st.shotCool--;
+    if(st.hitCool>0)st.hitCool--;
     st.carpTimer++;
     const mv=Math.max(5,18-st.level*2);
     if(st.carpTimer>=mv){
@@ -1378,9 +1411,8 @@ function game2(canvas){
       h.y+=h.vy;let hit=false;
       st.carps.forEach(c=>{
         if(!c.alive)return;
-        if(h.x<c.x+c.w&&h.x+h.w>c.x&&h.y<c.y+c.h&&h.y+h.h>c.y){c.alive=false;st.score+=10*st.level;hit=true;setTimeout(()=>{st.hookInAir=false;},300);}
+        if(h.x<c.x+c.w&&h.x+h.w>c.x&&h.y<c.y+c.h&&h.y+h.h>c.y){c.alive=false;st.score+=10*st.level;hit=true;st.hitCool=18;}
       });
-      if(h.y<-30){setTimeout(()=>{st.hookInAir=false;},300);}
       return !hit&&h.y>-30;
     });
     st.fishBullets=st.fishBullets.filter(b=>{
