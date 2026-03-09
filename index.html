@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Arte della Tlampač 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#ffd700;--dark:#0d0015;--darker:#070010;
+  --green:#00ff41;--red:#ff3333;--blue:#4488ff;
+  --font:'VT323',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--darker);color:#fff;
+  font-family:var(--font);
+  height:100dvh;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+}
+body::after{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.03) 3px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;z-index:9990;
+}
+.screen{
+  display:none;width:100vw;height:100dvh;
+  align-items:center;justify-content:center;flex-direction:column;
+  position:absolute;top:0;left:0;
+}
+.screen.active{display:flex;}
+
+/* BUTTONS */
+.btn{
+  background:var(--gold);color:#000;border:none;
+  padding:12px 28px;font-family:var(--font);
+  font-size:clamp(20px,3vw,26px);cursor:pointer;
+  clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));
+  transition:background .1s,transform .08s;white-space:nowrap;
+  letter-spacing:1px;
+}
+.btn:hover{background:#fff;transform:scale(1.04);}
+.btn:active{transform:scale(0.97);}
+.btn-ghost{
+  background:transparent;color:var(--gold);
+  border:2px solid var(--gold);clip-path:none;
+  font-size:clamp(18px,2.5vw,22px);padding:9px 20px;
+}
+.btn-ghost:hover{background:rgba(255,215,0,.12);}
+
+/* INTRO */
+#screen-intro{background:radial-gradient(ellipse at 50% 40%,#1e0640 0%,#0d0015 70%);}
+#starsCanvas{position:absolute;top:0;left:0;pointer-events:none;z-index:0;}
+.intro-content{
+  position:relative;z-index:1;text-align:center;
+  padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.intro-eyebrow{
+  font-size:clamp(16px,2.5vw,22px);color:#886699;
+  letter-spacing:7px;animation:fadeUp .8s ease;
+}
+.intro-title{
+  font-size:clamp(48px,10vw,96px);color:var(--gold);
+  text-shadow:0 0 30px rgba(255,215,0,.5),5px 5px 0 #7a5c00,10px 10px 0 rgba(0,0,0,.4);
+  animation:titlePulse 3s ease-in-out infinite,fadeUp .8s ease;
+  line-height:1.1;
+}
+.intro-3d{
+  font-size:clamp(28px,6vw,56px);color:#fff;letter-spacing:14px;
+  text-shadow:0 0 20px rgba(255,255,255,.4),3px 3px 0 #444;
+  animation:fadeUp 1s ease;margin-top:-8px;
+}
+.intro-sub{font-size:clamp(16px,2.5vw,20px);color:#667;animation:fadeUp 1.2s ease;}
+
+/* FIGHTER SELECT */
+.fighters{
+  display:flex;align-items:flex-end;justify-content:center;
+  margin:4px 0 10px;height:clamp(130px,22vw,200px);
+}
+.fighter{
+  position:relative;width:clamp(90px,16vw,145px);
+  margin-left:clamp(-30px,-6vw,-18px);
+  cursor:default;z-index:1;text-align:center;
+  transition:transform .22s cubic-bezier(.2,1.4,.5,1);
+}
+.fighter:first-child{margin-left:0;}
+.fighter img{
+  width:100%;display:block;image-rendering:pixelated;
+  filter:brightness(.55) saturate(.6);
+  transition:filter .22s;object-fit:contain;
+  height:clamp(100px,18vw,160px);
+}
+.fighter:hover{transform:translateY(-22px) scale(1.22);z-index:10;}
+.fighter:hover img{
+  filter:brightness(1.1) saturate(1.2)
+    drop-shadow(0 0 16px rgba(255,215,0,.9))
+    drop-shadow(0 4px 10px rgba(0,0,0,.8));
+}
+.fighter span{font-size:clamp(14px,2vw,18px);color:#556;display:block;margin-top:4px;transition:color .2s;}
+.fighter:hover span{color:var(--gold);}
+
+.intro-btns{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.intro-secondary{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+/* NAME */
+#screen-name{background:radial-gradient(ellipse at 50% 50%,#1a0a2e 0%,var(--darker) 80%);}
+.name-box{text-align:center;padding:30px;max-width:500px;}
+.name-box h2{color:var(--gold);font-size:clamp(28px,5vw,40px);margin-bottom:16px;}
+.name-box p{font-size:clamp(18px,2.8vw,22px);color:#667;margin-bottom:16px;line-height:1.7;}
+.pixel-input{
+  background:#0d0015;border:3px solid var(--gold);color:#fff;
+  padding:12px 22px;font-family:var(--font);
+  font-size:clamp(22px,3.5vw,28px);text-align:center;
+  width:300px;margin-bottom:16px;display:block;outline:none;
+  box-shadow:inset 0 0 20px rgba(0,0,0,.5);letter-spacing:2px;
+}
+.pixel-input:focus{border-color:var(--green);box-shadow:0 0 15px rgba(0,255,65,.3),inset 0 0 20px rgba(0,0,0,.5);}
+
+/* MENU */
+#screen-menu{background:radial-gradient(ellipse at 50% 30%,#160830 0%,var(--darker) 70%);overflow-y:auto;}
+.menu-header{text-align:center;margin-bottom:4px;}
+.menu-header h1{color:var(--gold);font-size:clamp(18px,3vw,26px);}
+.player-tag{font-size:clamp(13px,2vw,16px);color:#667;margin-top:2px;}
+.player-tag span{color:var(--green);}
+.games-grid{
+  display:flex;flex-direction:column;
+  gap:clamp(6px,1.2vw,10px);padding:clamp(6px,1.2vw,10px);
+  max-width:700px;width:100%;
+}
+.game-card{
+  background:linear-gradient(145deg,#1a0a2e,#110820);
+  border:2px solid #2a1a3e;
+  cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:row;align-items:stretch;
+  text-align:left;
+}
+.game-card::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,215,0,.06),transparent);
+  transition:left .4s;
+}
+.game-card:hover::before{left:100%;}
+.game-card:hover{border-color:var(--gold);box-shadow:0 0 18px rgba(255,215,0,.2);transform:translateY(-3px);}
+.game-card img{
+  position:absolute;left:clamp(50px,10vw,82px);top:50%;transform:translateY(-50%);
+  width:clamp(55px,10vw,82px);height:clamp(55px,10vw,82px);
+  object-fit:contain;image-rendering:pixelated;
+  filter:drop-shadow(0 0 10px rgba(255,215,0,.5)) drop-shadow(0 3px 6px rgba(0,0,0,.8));
+  z-index:2;
+}
+.card-info{flex:1;padding:clamp(7px,1vw,12px) clamp(8px,1.2vw,14px) clamp(7px,1vw,12px) clamp(50px,8vw,70px);display:flex;flex-direction:column;justify-content:center;}
+.card-title{font-size:clamp(14px,2.2vw,19px);color:var(--gold);margin-top:0;line-height:1.4;}
+.card-preview{
+  flex-shrink:0;width:clamp(100px,20vw,160px);height:auto;min-height:clamp(70px,11vh,95px);
+  background-size:cover;background-position:center center;
+  image-rendering:pixelated;border-right:2px solid rgba(255,215,0,0.15);
+}
+.card-desc{font-size:clamp(10px,1.4vw,13px);color:#778;margin-top:3px;line-height:1.35;}
+.menu-footer{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;padding-bottom:8px;}
+
+/* GAME */
+#screen-game{background:#000;position:relative;padding:0;flex-direction:column;}
+.hud{
+  width:100%;height:44px;background:rgba(0,0,0,.92);
+  border-bottom:2px solid #1a0a2e;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;flex-shrink:0;z-index:10;
+}
+.hud-left{font-size:clamp(14px,2.2vw,18px);color:var(--gold);}
+.hud-center{font-size:clamp(16px,2.5vw,20px);color:var(--green);}
+.hud-right{font-size:clamp(14px,2.2vw,18px);color:var(--red);}
+#gameCanvas{display:block;flex:1;image-rendering:pixelated;width:100%;}
+.game-ctrl{
+  position:absolute;top:46px;right:0;left:0;
+  display:flex;justify-content:center;gap:4px;z-index:20;
+  padding:5px 6px;background:rgba(0,0,0,.72);
+  border-bottom:1px solid #1a0a2e;
+}
+.ctrl-btn{
+  background:rgba(20,5,40,.9);border:2px solid #3a2050;color:#aaa;
+  padding:7px 13px;font-family:var(--font);font-size:clamp(15px,2vw,18px);
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+  letter-spacing:.5px;
+}
+.ctrl-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(40,15,70,.95);}
+.ctrl-btn.active-mode{border-color:var(--green);color:var(--green);background:rgba(0,30,10,.9);}
+#gameCanvas{margin-top:0;}
+
+/* SOUND PANEL overlay */
+.sound-panel{
+  display:none;position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.88);z-index:52;align-items:center;justify-content:center;
+}
+.sound-panel.open{display:flex;}
+.sound-box{
+  background:linear-gradient(145deg,#1a0a2e,#110820);
+  border:3px solid var(--gold);padding:28px 32px;text-align:center;
+  max-width:360px;width:92%;
+}
+.sound-box h3{color:var(--gold);font-size:clamp(22px,4vw,30px);margin-bottom:18px;}
+.sound-modes{display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
+.sound-mode-btn{
+  background:#0d0015;border:2px solid #3a2050;color:#889;
+  padding:10px 18px;font-family:var(--font);font-size:clamp(17px,2.5vw,22px);
+  cursor:pointer;transition:all .15s;min-width:100px;
+}
+.sound-mode-btn:hover{border-color:var(--gold);color:var(--gold);}
+.sound-mode-btn.selected{border-color:var(--green);color:var(--green);background:rgba(0,30,10,.8);}
+.vol-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.vol-row label{color:#889;font-family:var(--font);font-size:clamp(15px,2vw,19px);white-space:nowrap;}
+.vol-slider{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:6px;background:#2a1a3e;outline:none;cursor:pointer;
+}
+.vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;
+  background:var(--gold);cursor:pointer;border-radius:0;
+  border:2px solid #000;
+}
+.vol-slider::-moz-range-thumb{
+  width:18px;height:18px;background:var(--gold);
+  cursor:pointer;border-radius:0;border:2px solid #000;
+}
+
+/* PAUSE */
+.pause-overlay{
+  display:none;position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.82);z-index:50;align-items:center;justify-content:center;
+}
+.pause-overlay.open{display:flex;}
+.pause-box{
+  background:linear-gradient(145deg,#1a0a2e,#110820);
+  border:3px solid var(--gold);padding:32px;text-align:center;
+  min-width:260px;
+}
+.pause-box h3{color:var(--gold);font-size:clamp(26px,4vw,36px);margin-bottom:18px;}
+.pause-btns{display:flex;flex-direction:column;gap:10px;}
+
+/* SNAKE SPEED */
+.speed-overlay{
+  display:none;position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(7,0,16,.97);z-index:50;
+  align-items:center;justify-content:center;
+}
+.speed-overlay.open{display:flex;}
+.speed-box{
+  background:linear-gradient(145deg,#1a0a2e,#110820);
+  border:3px solid var(--gold);padding:30px;text-align:center;max-width:380px;
+}
+.speed-box h3{color:var(--gold);font-size:clamp(24px,4vw,34px);margin-bottom:14px;}
+.speed-box p{font-size:clamp(16px,2.5vw,20px);color:#889;margin-bottom:20px;line-height:1.8;}
+.speed-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* GAME OVER */
+#screen-gameover{background:radial-gradient(ellipse at 50% 50%,#2a0a0a 0%,var(--darker) 70%);}
+.go-box{text-align:center;padding:20px;max-width:400px;}
+.go-title{font-size:clamp(30px,5vw,44px);color:var(--red);margin-bottom:12px;}
+.go-score-label{font-size:clamp(16px,2.5vw,20px);color:#667;margin-bottom:4px;}
+.go-score{font-size:clamp(56px,10vw,88px);color:var(--gold);text-shadow:0 0 20px rgba(255,215,0,.4);line-height:1;}
+.go-unit{font-size:clamp(16px,2.5vw,20px);color:#667;margin-bottom:12px;}
+.go-msg{font-size:clamp(16px,2.5vw,20px);color:#889;margin-bottom:8px;line-height:1.7;}
+.go-record{font-size:clamp(18px,3vw,24px);color:var(--green);margin-bottom:14px;animation:blink 1s infinite;}
+.go-btns{display:flex;flex-direction:column;gap:9px;align-items:center;}
+
+/* STATS */
+#screen-stats{background:radial-gradient(ellipse at 50% 30%,#0a1a2e 0%,var(--darker) 70%);overflow-y:auto;}
+.stats-box{text-align:center;padding:16px;max-width:620px;width:100%;}
+.stats-box h2{color:var(--gold);font-size:clamp(24px,4vw,34px);margin-bottom:12px;}
+.stats-tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;}
+.tab-btn{
+  background:#1a0a2e;border:2px solid #2a1a3e;color:#667;
+  padding:7px 14px;font-family:var(--font);
+  font-size:clamp(16px,2.2vw,20px);cursor:pointer;transition:all .2s;
+}
+.tab-btn.active,.tab-btn:hover{border-color:var(--gold);color:var(--gold);background:#1a1000;}
+.lb-row{
+  display:grid;grid-template-columns:32px 1fr auto;gap:8px;
+  padding:8px 12px;font-size:clamp(16px,2.2vw,20px);
+  border-bottom:1px solid #1a0a2e;align-items:center;
+}
+.lb-row.header{font-size:clamp(14px,1.8vw,17px);color:var(--gold);border-bottom-color:#2a1a3e;}
+.lb-row:nth-child(even){background:rgba(255,255,255,.02);}
+.lb-row.me{color:var(--green);}
+.lb-score{color:var(--gold);text-align:right;}
+.tickets-section{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0;}
+
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.87);z-index:9999;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:#1a0a2e;border:3px solid var(--gold);
+  padding:28px;text-align:center;max-width:380px;width:92%;
+}
+.modal-box h3{color:var(--gold);font-size:clamp(24px,4vw,32px);margin-bottom:14px;}
+.modal-box p{font-size:clamp(16px,2.5vw,20px);color:#889;margin-bottom:16px;line-height:1.8;}
+.modal-btns{display:flex;flex-direction:column;gap:8px;}
+
+@keyframes titlePulse{0%,100%{text-shadow:0 0 30px rgba(255,215,0,.5),5px 5px 0 #7a5c00;}50%{text-shadow:0 0 55px rgba(255,215,0,.85),5px 5px 0 #7a5c00;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.hidden{display:none!important;}
+
+/* PANDA – větší než sousedi */
+.fighter.fighter-panda{width:clamp(112px,20vw,178px);z-index:5;}
+.fighter.fighter-panda img{height:clamp(122px,22vw,196px);}
+.fighter.fighter-panda:hover{transform:translateY(-28px) scale(1.26);}
+
+/* HELP OVERLAY */
+.help-overlay{
+  display:none;position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.93);z-index:55;align-items:center;justify-content:center;
+}
+.help-overlay.open{display:flex;}
+.help-box{
+  background:linear-gradient(145deg,#1a0a2e,#110820);
+  border:3px solid var(--gold);padding:26px 30px;text-align:left;
+  max-width:400px;width:92%;
+}
+.help-box h3{color:var(--gold);font-size:clamp(22px,4vw,30px);margin-bottom:10px;text-align:center;}
+.help-box p{font-size:clamp(14px,2.1vw,18px);color:#aab;line-height:1.85;margin-bottom:14px;text-align:left;white-space:pre-wrap;}
+.help-close{display:block;width:100%;margin-top:4px;}
+
+/* Mobile – větší ctrl tlačítka */
+@media (max-width:600px){
+  .ctrl-btn{font-size:15px;padding:8px 11px;}
+  .game-ctrl{gap:4px;top:47px;right:5px;}
+}
+
+
+
+</style>
+</head>
+<body>
+
+<!-- ════ INTRO ════ -->
+<div id="screen-intro" class="screen active">
+  <canvas id="starsCanvas"></canvas>
+  <div class="intro-content">
+    <div class="intro-eyebrow">VÍTEJTE VE SVĚTĚ</div>
+    <div class="intro-title">Arte della<br>Tlampač</div>
+    <div class="intro-3d">3 D</div>
+    <div class="fighters">
+      <div class="fighter"><img src="assets/krystof.png" alt=""><span></span></div>
+      <div class="fighter"><img src="assets/plz.png" alt=""><span></span></div>
+      <div class="fighter fighter-panda"><img src="assets/panda.png" alt=""><span></span></div>
+      <div class="fighter"><img src="assets/vilda.png" alt=""><span></span></div>
+      <div class="fighter"><img src="assets/michal.png" alt=""><span></span></div>
+    </div>
+    <div class="intro-btns">
+      <button class="btn" onclick="showScreen('screen-name')" style="font-size:clamp(22px,3.5vw,30px);padding:16px 48px;">▶ ZAČÍT HRU</button>
+      <div class="intro-secondary">
+        <button class="btn btn-ghost" onclick="showScreen('screen-stats')">ŽEBŘÍČEK</button>
+        <button class="btn btn-ghost" onclick="openTickets()">VSTUPENKY</button>
+        <a href="https://www.artedellatlampac.cz/" target="_blank" rel="noopener" style="display:contents"><button class="btn btn-ghost">WEB</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ NAME ════ -->
+<div id="screen-name" class="screen">
+  <div class="name-box">
+    <h2>KDO JSI?</h2>
+    <p>Zadej přezdívku — zobrazí se<br>v online žebříčku.</p>
+    <input id="nameInput" class="pixel-input" type="text" placeholder="TVOJE JMÉNO" maxlength="14" autocomplete="off" spellcheck="false">
+    <button class="btn" onclick="confirmName()" style="margin-bottom:12px;">POKRAČOVAT ▶</button><br>
+    <button class="btn btn-ghost" onclick="showScreen('screen-intro')" style="margin-top:8px;">◀ ZPĚT</button>
+  </div>
+</div>
+
+<!-- ════ MENU ════ -->
+<div id="screen-menu" class="screen">
+  <div class="menu-header">
+    <h1>VYBER HRU</h1>
+    <div class="player-tag">Hráč: <span id="nameDisplay">-</span></div>
+  </div>
+  <div class="games-grid">
+    <div class="game-card" onclick="launchGame(1)">
+      <div class="card-preview" style="background-image:url('assets/krystof_bg.png')"></div>
+      <img src="assets/krystof.png" alt="">
+      <div class="card-info"><div class="card-title">V ZÁŘI<br>REFLEKTORŮ</div><div class="card-desc">Chytni správné rekvizity pro další scénku.</div></div>
+    </div>
+    <div class="game-card" onclick="launchGame(2)">
+      <div class="card-preview" style="background-image:url('assets/plz_bg.png')"></div>
+      <img src="assets/plz.png" alt="">
+      <div class="card-info"><div class="card-title">KAPR<br>INVADERS</div><div class="card-desc">Ulov všechny ryby v Bečvě.</div></div>
+    </div>
+    <div class="game-card" onclick="launchGame(3)">
+      <div class="card-preview" style="background-image:url('assets/vilda_bg.png')"></div>
+      <img src="assets/vilda.png" alt="">
+      <div class="card-info"><div class="card-title">STARTED FROM<br>THE BOTTOM</div><div class="card-desc">Proskákej se propadlem až na jeviště.</div></div>
+    </div>
+    <div class="game-card" onclick="launchGame(4)">
+      <div class="card-preview" style="background-image:url('assets/michal_bg.png')"></div>
+      <img src="assets/michal.png" alt="">
+      <div class="card-info"><div class="card-title">NAJDI SVOJE<br>REKVIZITY</div><div class="card-desc">Najdi co nejvíc rekvizit v tom bordelu. Představení za chvilku začíná.</div></div>
+    </div>
+  </div>
+  <div class="menu-footer">
+    <button class="btn btn-ghost" onclick="showScreen('screen-stats')">ŽEBŘÍČEK</button>
+    <button class="btn btn-ghost" onclick="openTickets()">VSTUPENKY</button>
+    <button class="btn btn-ghost" onclick="playRandomQuote()" id="quoteBtnMenu">HLÁŠKA</button>
+    <button class="btn btn-ghost" id="menuSoundBtn" onclick="openMenuSoundPanel()">ZVUK OFF</button>
+    <a href="https://www.artedellatlampac.cz/" target="_blank" rel="noopener" style="display:contents"><button class="btn btn-ghost">WEB</button></a>
+    <button class="btn btn-ghost" onclick="showScreen('screen-intro')">◀ ZPĚT</button>
+  </div>
+</div>
+
+<!-- ════ MENU SOUND PANEL ════ -->
+<div id="menuSoundPanel" class="modal-overlay">
+  <div class="modal-box" style="max-width:360px;">
+    <h3>NASTAVENÍ ZVUKU</h3>
+    <div class="sound-modes" style="margin-bottom:18px;">
+      <button class="sound-mode-btn" id="smBtnMusic" onclick="setSoundMode('music')">HUDBA</button>
+      <button class="sound-mode-btn" id="smBtnQuotes" onclick="setSoundMode('quotes')">HLÁŠKY</button>
+      <button class="sound-mode-btn" id="smBtnOff" onclick="setSoundMode('off')">VYPNUTO</button>
+    </div>
+    <div class="vol-row" style="margin-bottom:20px;">
+      <label style="color:#889;font-family:var(--font);font-size:18px;white-space:nowrap;">HLASITOST</label>
+      <input type="range" class="vol-slider" id="volSliderMenu" min="0" max="100" value="25"
+             oninput="setMasterVolume(this.value);document.getElementById('volSliderGame').value=this.value;">
+      <span class="vol-label" style="color:var(--gold);font-family:var(--font);font-size:18px;min-width:40px;">25%</span>
+    </div>
+    <button class="btn" onclick="closeMenuSoundPanel()" style="width:100%">ZAVRIT</button>
+  </div>
+</div>
+
+<!-- ════ GAME ════ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <span class="hud-left" id="hudName">-</span>
+    <span class="hud-center" id="hudScore">SKÓRE: 0</span>
+    <span class="hud-right" id="hudLives"></span>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="game-ctrl">
+    <button class="ctrl-btn" onclick="showGameHelp()">? NAPOVEDA</button>
+    <button class="ctrl-btn" id="soundToggleBtn" onclick="openSoundPanel()">ZVUK</button>
+    <button class="ctrl-btn" onclick="togglePause()">II PAUZA</button>
+    <button class="ctrl-btn" onclick="exitToMenu()">X KONEC</button>
+    <button class="ctrl-btn" onclick="quickStats()">ZEBRICEK</button>
+  </div>
+  <div class="sound-panel" id="soundPanel">
+    <div class="sound-box">
+      <h3>NASTAVENÍ ZVUKU</h3>
+      <div class="sound-modes">
+        <button class="sound-mode-btn" id="smBtnMusic" onclick="setSoundMode('music')">HUDBA</button>
+        <button class="sound-mode-btn" id="smBtnQuotes" onclick="setSoundMode('quotes')">HLÁŠKY</button>
+        <button class="sound-mode-btn" id="smBtnOff" onclick="setSoundMode('off')">VYPNUTO</button>
+      </div>
+      <div class="vol-row">
+        <label>HLASITOST</label>
+        <input type="range" class="vol-slider" id="volSliderGame" min="0" max="100" value="25"
+               oninput="setMasterVolume(this.value);document.getElementById('volSliderMenu').value=this.value;">
+        <span class="vol-label" style="color:var(--gold);font-family:var(--font);font-size:18px;min-width:40px;">25%</span>
+      </div>
+      <button class="btn" onclick="closeSoundPanel()" style="width:100%">ZAVRIT</button>
+    </div>
+  </div>
+  <div class="pause-overlay" id="pauseOverlay">
+    <div class="pause-box">
+      <h3>// PAUZA //</h3>
+      <div class="pause-btns">
+        <button class="btn" onclick="togglePause()">POKRAČOVAT</button>
+        <button class="btn btn-ghost" onclick="quickStats()">ŽEBŘÍČEK</button>
+        <button class="btn btn-ghost" onclick="exitToMenu()">OPUSTIT HRU</button>
+      </div>
+    </div>
+  </div>
+  <div class="help-overlay" id="helpOverlay">
+    <div class="help-box">
+      <h3 id="helpTitle">NÁPOVĚDA</h3>
+      <p id="helpText"></p>
+      <button class="btn help-close" onclick="closeHelp()">ZAVŘÍT</button>
+    </div>
+  </div>
+  <div class="speed-overlay" id="speedOverlay">
+    <div class="speed-box">
+      <h3>RYCHLOST HADA</h3>
+      <p>Vyber počáteční rychlost.<br>Body se počítají za každou<br>chycenou rekvizitu.</p>
+      <div class="speed-btns">
+        <button class="btn" onclick="startSnake(1)">POMALU</button>
+        <button class="btn" onclick="startSnake(2)">STŘEDNĚ</button>
+        <button class="btn" onclick="startSnake(3)">RYCHLE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ GAME OVER ════ -->
+<div id="screen-gameover" class="screen">
+  <div class="go-box">
+    <div class="go-title" id="goTitle">KONEC HRY</div>
+    <div class="go-msg" id="goMsg"></div>
+    <div class="go-score-label">TVOJE SKÓRE</div>
+    <div class="go-score" id="goScore">0</div>
+    <div class="go-unit" id="goUnit">bodů</div>
+    <div class="go-record hidden" id="goRecord">NOVÝ REKORD!</div>
+    <div class="go-btns">
+      <button class="btn" onclick="retryCurrentGame()">HRÁT ZNOVU</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-menu')">VÝBĚR HER</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-stats')">ŽEBŘÍČEK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ STATS ════ -->
+<div id="screen-stats" class="screen">
+  <div class="stats-box">
+    <h2>ŽEBŘÍČEK</h2>
+    <div class="stats-tabs">
+      <button class="tab-btn active" onclick="loadStats(1,this)">CHYTAČ REKVIZIT</button>
+      <button class="tab-btn" onclick="loadStats(2,this)">KAPR INVIDERS</button>
+      <button class="tab-btn" onclick="loadStats(3,this)">TOWER JUMP</button>
+      <button class="tab-btn" onclick="loadStats(4,this)">HAD</button><button class="tab-btn" onclick="loadStats(41,this)">HAD POMALU</button><button class="tab-btn" onclick="loadStats(42,this)">HAD STŘEDNĚ</button><button class="tab-btn" onclick="loadStats(43,this)">HAD RYCHLE</button>
+    </div>
+    <div id="lbContent"></div>
+    <div style="font-size:18px;color:#446;margin:10px 0;">— Přijď nás vidět naživo! —</div>
+    <div class="tickets-section">
+      <a href="https://www.facebook.com/events/1246693417435824/" target="_blank" rel="noopener">
+        <button class="btn">PRAHA</button>
+      </a>
+      <a href="https://www.facebook.com/events/1507568990341036/" target="_blank" rel="noopener">
+        <button class="btn">ČESKÉ BUDĚJOVICE</button>
+      </a>
+    </div>
+    <button class="btn btn-ghost" onclick="goBackFromStats()" style="margin-top:8px;">◀ ZPĚT</button>
+  </div>
+</div>
+
+<!-- ════ TICKETS MODAL ════ -->
+<div id="ticketsModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>VSTUPENKY</h3>
+    <p>Přijďte nás vidět naživo!<br>Arte della Tlampač 3D na scéně.</p>
+    <div class="modal-btns">
+      <a href="https://www.facebook.com/events/1246693417435824/" target="_blank" rel="noopener">
+        <button class="btn" style="width:100%">PRAHA</button>
+      </a>
+      <a href="https://www.facebook.com/events/1507568990341036/" target="_blank" rel="noopener">
+        <button class="btn" style="width:100%">ČESKÉ BUDĚJOVICE</button>
+      </a>
+      <button class="btn btn-ghost" onclick="closeTickets()" style="width:100%;margin-top:4px;">ZAVŘÍT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ STATS OVERLAY (inline) ════ -->
+<div id="statsOverlay" class="modal-overlay">
+  <div class="modal-box" style="max-width:460px;width:94%">
+    <h3>ŽEBŘÍČEK</h3>
+    <div class="stats-tabs" style="margin:10px 0">
+      <button class="tab-btn active" onclick="loadStatsInline(1,this)">CHYTAČ REKVIZIT</button>
+      <button class="tab-btn" onclick="loadStatsInline(2,this)">KAPR INVIDERS</button>
+      <button class="tab-btn" onclick="loadStatsInline(3,this)">TOWER JUMP</button>
+      <button class="tab-btn" onclick="loadStatsInline(4,this)">HAD</button><button class="tab-btn" onclick="loadStatsInline(41,this)">HAD POMALÝ</button><button class="tab-btn" onclick="loadStatsInline(42,this)">HAD STŘEDNÍ</button><button class="tab-btn" onclick="loadStatsInline(43,this)">HAD RYCHLÝ</button>
+    </div>
+    <div id="lbInline" style="max-height:220px;overflow-y:auto;"></div>
+    <button class="btn btn-ghost" onclick="closeStatsOverlay()" style="width:100%;margin-top:10px;">ZAVŘÍT</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  SUPABASE CONFIG — vyplň své klíče
+// ════════════════════════════════════════════
+const SB_URL = 'https://psddofjhsfyioqpohomt.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzZGRvZmpoc2Z5aW9xcG9ob210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMjAyMzAsImV4cCI6MjA4ODU5NjIzMH0.faPUHviXiThkyLDZMAYYDNK_8irHmXsaXWjIdMkS-qk';
+const SB_OK  = SB_URL !== 'YOUR_SUPABASE_URL';
+
+// ════════════════════════════════════════════
+//  GLOBALS
+// ════════════════════════════════════════════
+let playerName   = localStorage.getItem('adtPlayer') || 'HRÁČ';
+let currentGame  = 0;
+let gameLoopId   = null;
+let isPaused     = false;
+let prevScreen   = 'screen-menu';
+const K = { left:false, right:false, up:false, space:false };
+
+// Preload Plž sprite
+const plzSprite = new Image();
+plzSprite.src = 'assets/sprite_plz.png';
+
+// Preload all additional assets
+const imgs = {};
+['krystof_bg','plz_bg','michal_bg','vilda_bg','vilda_tower',
+ 'sprite_krystof','sprite_vilda','sprite_michal','vagon',
+ 'klobouk','pistole','kompas','lahev','rukavice','policie',
+ 'sako','hrnek','pes','bota','ryba'].forEach(n=>{
+  imgs[n]=new Image(); imgs[n].src='assets/'+n+'.png';
+});
+
+// ════════════════════════════════════════════
+//  SCREEN
+// ════════════════════════════════════════════
+function showScreen(id) {
+  if (id !== 'screen-game' && gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-stats') loadStats(1, document.querySelector('#screen-stats .tab-btn'));
+  // Spustit správnou hudbu pro danou obrazovku
+  if(['screen-intro','screen-name','screen-menu','screen-stats','screen-gameover'].includes(id)){
+    syncMusicToContext('menu');
+  }
+  _updateSoundUI();
+}
+function goBackFromStats() { showScreen(prevScreen || 'screen-menu'); }
+
+document.getElementById('nameInput').value = playerName !== 'HRÁČ' ? playerName : '';
+document.getElementById('nameDisplay').textContent = playerName;
+
+function confirmName() {
+  const v = (document.getElementById('nameInput').value.trim() || '').toUpperCase().substring(0,14);
+  if (!v) { document.getElementById('nameInput').focus(); return; }
+  playerName = v;
+  localStorage.setItem('adtPlayer', playerName);
+  document.getElementById('nameDisplay').textContent = playerName;
+  showScreen('screen-menu');
+}
+document.getElementById('nameInput').addEventListener('keydown', e => { if(e.key==='Enter') confirmName(); });
+
+function openTickets()  { document.getElementById('ticketsModal').classList.add('open'); }
+function closeTickets() { document.getElementById('ticketsModal').classList.remove('open'); }
+document.getElementById('ticketsModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeTickets(); });
+document.getElementById('menuSoundPanel').addEventListener('click', e => { if(e.target===e.currentTarget) closeMenuSoundPanel(); });
+
+let _game1Timer = null;
+function exitToMenu() {
+  isPaused = false;
+  document.getElementById('pauseOverlay').classList.remove('open');
+  document.getElementById('helpOverlay').classList.remove('open');
+  if (gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; }
+  if (_game1Timer) { clearInterval(_game1Timer); _game1Timer = null; }
+  // Zastavit audio ale zachovat mód – menu hudba se spustí automaticky přes showScreen
+  _stopQuotes();
+  _stopMusic(false);
+  showScreen('screen-menu');
+}
+function retryCurrentGame() { launchGame(currentGame); }
+
+function togglePause() {
+  isPaused = !isPaused;
+  document.getElementById('pauseOverlay').classList.toggle('open', isPaused);
+}
+function quickStats() {
+  isPaused = true;
+  document.getElementById('pauseOverlay').classList.remove('open');
+  document.getElementById('statsOverlay').classList.add('open');
+  loadStatsInline(currentGame || 1, document.querySelector('#statsOverlay .tab-btn'));
+}
+function closeStatsOverlay() {
+  document.getElementById('statsOverlay').classList.remove('open');
+  if (document.getElementById('screen-game').classList.contains('active')) isPaused = false;
+}
+
+// ════════════════════════════════════════════
+//  KEYBOARD
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowLeft' ||e.key==='a') K.left =true;
+  if(e.key==='ArrowRight'||e.key==='d') K.right=true;
+  if(e.key==='ArrowUp'   ||e.key==='w') K.up   =true;
+  if(e.key===' '){ K.space=true; e.preventDefault(); }
+  if(e.key==='Escape'&&document.getElementById('screen-game').classList.contains('active')) togglePause();
+});
+document.addEventListener('keyup', e => {
+  if(e.key==='ArrowLeft' ||e.key==='a') K.left =false;
+  if(e.key==='ArrowRight'||e.key==='d') K.right=false;
+  if(e.key==='ArrowUp'   ||e.key==='w') K.up   =false;
+  if(e.key===' ') K.space=false;
+});
+
+// ════════════════════════════════════════════
+//  CANVAS TOUCH (left/center/right zones)
+// ════════════════════════════════════════════
+function setupCanvasTouch(canvas, gameId) {
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach(t => {
+      const x = t.clientX / canvas.clientWidth;
+      if (x < 0.3)      K.left  = true;
+      else if (x > 0.7) K.right = true;
+      else { gameId === 2 ? K.space = true : K.up = true; }
+    });
+  },{passive:false});
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    if (e.touches.length === 0) { K.left=false; K.right=false; K.space=false; K.up=false; }
+  },{passive:false});
+}
+
+// ════════════════════════════════════════════
+//  STARS
+// ════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('starsCanvas');
+  const resize=()=>{c.width=window.innerWidth;c.height=window.innerHeight;};
+  resize(); window.addEventListener('resize',resize);
+  const ctx=c.getContext('2d');
+  const stars=Array.from({length:200},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.4+.3,s:Math.random()*.5+.1,b:Math.random()}));
+  function tick(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{s.b+=(Math.random()-.5)*.04;s.b=Math.max(.1,Math.min(.9,s.b));ctx.fillStyle=`rgba(255,255,255,${s.b})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();s.y+=s.s;if(s.y>c.height){s.y=0;s.x=Math.random()*c.width;}});
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+// ════════════════════════════════════════════
+//  LAUNCHER
+// ════════════════════════════════════════════
+function launchGame(id) {
+  currentGame=id; isPaused=false;
+  document.getElementById('pauseOverlay').classList.remove('open');
+  document.getElementById('speedOverlay').classList.remove('open');
+  if(gameLoopId){cancelAnimationFrame(gameLoopId);gameLoopId=null;}
+  Object.keys(K).forEach(k=>K[k]=false);
+  prevScreen='screen-menu';
+  showScreen('screen-game');
+  syncMusicToContext(id); // přepne na hudbu pro tuto hru
+  const canvas=document.getElementById('gameCanvas');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight-88;
+  const names=['','V ZÁŘI REFLEKTORŮ','KAPR INVADERS','STARTED FROM THE BOTTOM','NAJDI SVOJE REKVIZITY'];
+  document.getElementById('hudName').textContent=names[id];
+  document.getElementById('hudScore').textContent='SKÓRE: 0';
+  document.getElementById('hudLives').textContent='';
+  switch(id){case 1:game1(canvas);break;case 2:game2(canvas);break;case 3:game3(canvas);break;case 4:game4setup(canvas);break;}
+}
+
+// ════════════════════════════════════════════
+//  GAME OVER
+// ════════════════════════════════════════════
+async function triggerGameOver(score,unit,msg,gid){
+  if(gameLoopId){cancelAnimationFrame(gameLoopId);gameLoopId=null;}
+  // Okamžitě zastavit audio (bez fade) – jinak by herní hudba překrývala menu hudbu
+  _stopQuotes();
+  _stopMusic(false);
+  document.getElementById('goScore').textContent=score;
+  document.getElementById('goUnit').textContent=unit||'bodů';
+  document.getElementById('goMsg').textContent=msg||'';
+  document.getElementById('goRecord').classList.add('hidden');
+  const key=`best_g${currentGame}`;
+  const prev=parseInt(localStorage.getItem(key)||'0');
+  if(score>prev){localStorage.setItem(key,score);document.getElementById('goRecord').classList.remove('hidden');}
+  await saveScore(gid||currentGame,score);
+  showScreen('screen-gameover');
+}
+
+// ════════════════════════════════════════════
+//  SUPABASE
+// ════════════════════════════════════════════
+async function saveScore(gid,score){
+  if(!SB_OK)return;
+  try{await fetch(`${SB_URL}/rest/v1/scores`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Prefer':'return=minimal'},body:JSON.stringify({player_name:playerName,game_id:gid,score})});}catch(e){}
+}
+async function loadStats(gid,btn){
+  document.querySelectorAll('#screen-stats .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderLeaderboard('lbContent',gid);
+}
+async function loadStatsInline(gid,btn){
+  document.querySelectorAll('#statsOverlay .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderLeaderboard('lbInline',gid);
+}
+async function renderLeaderboard(elId,gid){
+  const el=document.getElementById(elId);
+  if(!SB_OK){el.innerHTML=`<div style="font-size:18px;color:#446;padding:16px;text-align:center">Supabase není nastaven.<br>Doplň SB_URL a SB_KEY v kódu.</div>`;return;}
+  el.innerHTML=`<div style="font-size:18px;color:#446;padding:12px;text-align:center">Načítám...</div>`;
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/scores?game_id=eq.${gid}&order=score.desc&limit=15`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const data=await r.json();
+    if(!data.length){el.innerHTML=`<div style="font-size:18px;color:#446;padding:12px;text-align:center">Zatím žádné výsledky</div>`;return;}
+    const medals=['1.','2.','3.'];
+    let html=`<div class="lb-row header"><span>#</span><span>HRÁČ</span><span>SKÓRE</span></div>`;
+    data.forEach((row,i)=>{const me=row.player_name===playerName;html+=`<div class="lb-row ${me?'me':''}"><span>${medals[i]||i+1+'.'}</span><span>${row.player_name}</span><span class="lb-score">${row.score}</span></div>`;});
+    el.innerHTML=html;
+  }catch(e){el.innerHTML=`<div style="font-size:18px;color:#833;padding:12px;text-align:center">Chyba načítání</div>`;}
+}
+
+// ════════════════════════════════════════════
+//  SOUND SYSTEM v3
+//  Módy: 'music' | 'quotes' | 'off'
+//  Hudba je svázána s konkrétní obrazovkou/hrou
+// ════════════════════════════════════════════
+const SOUND_COUNT = 30;
+
+// Hudba přiřazená ke každé hře + menu
+const GAME_MUSIC = {
+  menu:    'menu_music',   // intro, name, menu, stats
+  1:       'krystof_music', // V záři reflektorů
+  2:       'plz_music',     // Kapr Invaders
+  3:       'vilda_music',   // Tower Jump
+  4:       'michal_music',  // Had
+};
+
+let _soundMode    = 'off';  // 'music' | 'quotes' | 'off'
+let _masterVol    = 0.25;   // bezpečná výchozí hlasitost pro sluchátka
+let _musicAudio   = null;
+let _currentTrack = null;   // název aktuálně hrajícího tracku
+let _quoteAudio   = null;
+let _quoteTimer   = null;
+let _musicFadeId  = null;
+let _fadingAudio  = null;  // audio právě fadující – musíme ho sledovat
+let _usedQuotes   = [];
+
+// ── Helpers ──────────────────────────────────
+function _safeVol(audio, vol){
+  if(audio) try { audio.volume = Math.max(0, Math.min(1, vol)); } catch(e){}
+}
+function _nextQuoteIdx(){
+  if(_usedQuotes.length >= SOUND_COUNT) _usedQuotes = [];
+  let n;
+  do { n = 1 + Math.floor(Math.random() * SOUND_COUNT); } while(_usedQuotes.includes(n));
+  _usedQuotes.push(n);
+  return n;
+}
+
+// ── Quotes ───────────────────────────────────
+function _startQuotes(){
+  _stopQuotes();
+  _playNextQuote();
+}
+function _stopQuotes(){
+  if(_quoteTimer){ clearTimeout(_quoteTimer); _quoteTimer = null; }
+  if(_quoteAudio){ _quoteAudio.pause(); _quoteAudio = null; }
+}
+function _playNextQuote(){
+  if(_soundMode !== 'quotes') return;
+  const n = _nextQuoteIdx();
+  const a = new Audio(`assets/sounds/${n}.mp3`);
+  _safeVol(a, _masterVol);
+  _quoteAudio = a;
+  a.play().catch(()=>{});
+  a.addEventListener('ended', ()=>{
+    _quoteAudio = null;
+    if(_soundMode === 'quotes') _quoteTimer = setTimeout(_playNextQuote, 3000);
+  });
+}
+
+// ── Music ────────────────────────────────────
+function _playTrack(trackName){
+  // Pokud stejný track už hraje, nic nedělej
+  if(_musicAudio && _currentTrack === trackName) return;
+  // Fadeout starého
+  _stopMusic(true);
+  if(_soundMode !== 'music') return;
+  const a = new Audio(`assets/sounds/${trackName}.mp3`);
+  _safeVol(a, _masterVol);
+  _musicAudio = a;
+  _currentTrack = trackName;
+  a.play().catch(()=>{});
+  a.addEventListener('ended', ()=>{
+    _musicAudio = null;
+    _currentTrack = null;
+    // po skončení přehraj stejný track znovu (smyčka)
+    if(_soundMode === 'music') setTimeout(()=>_playTrack(trackName), 1200);
+  });
+}
+function _stopMusic(fadeout){
+  if(_musicFadeId){ cancelAnimationFrame(_musicFadeId); _musicFadeId = null; }
+  // Zastavit předchozí fadující audio – jinak by hrálo dál nekontrolovatelně
+  if(_fadingAudio){ _fadingAudio.pause(); _fadingAudio = null; }
+  if(!_musicAudio){ _currentTrack = null; return; }
+  const a = _musicAudio;
+  _musicAudio = null;
+  _currentTrack = null;
+  if(!fadeout){ a.pause(); return; }
+  _fadingAudio = a;
+  let vol = a.volume;
+  const step = Math.max(0.005, vol / 50);
+  function fade(){
+    vol -= step;
+    if(vol <= 0){ a.pause(); if(_fadingAudio === a) _fadingAudio = null; return; }
+    _safeVol(a, vol);
+    _musicFadeId = requestAnimationFrame(fade);
+  }
+  fade();
+}
+
+// ── Veřejné API ──────────────────────────────
+
+// Zavolá se při každém přepnutí obrazovky nebo spuštění hry
+function syncMusicToContext(context){
+  // context = 'menu' | 1 | 2 | 3 | 4
+  if(_soundMode !== 'music') return;
+  const track = GAME_MUSIC[context] || GAME_MUSIC.menu;
+  _playTrack(track);
+}
+
+function setSoundMode(mode){
+  _soundMode = mode;
+  _stopQuotes();
+  _stopMusic(true);
+  if(mode === 'music'){
+    // spustit správnou hudbu pro aktuální kontext
+    const ctx = currentGame || 'menu';
+    const track = GAME_MUSIC[ctx] || GAME_MUSIC.menu;
+    setTimeout(()=>_playTrack(track), 200); // krátká pauza po fadeoutu
+  }
+  if(mode === 'quotes') _startQuotes();
+  _updateSoundUI();
+}
+
+function setMasterVolume(val){
+  _masterVol = val / 100;
+  // Aktualizovat všechny labely
+  document.querySelectorAll('.vol-label').forEach(el => el.textContent = val + '%');
+  _safeVol(_musicAudio, _masterVol);
+  _safeVol(_quoteAudio, _masterVol);
+}
+
+function stopAllSound(){
+  const prev = _soundMode;
+  _soundMode = 'off';
+  _stopQuotes();
+  _stopMusic(prev === 'music');
+  _updateSoundUI();
+}
+function stopAmbientSound(){ stopAllSound(); } // zpětná kompatibilita
+
+function _updateSoundUI(){
+  ['music','quotes','off'].forEach(m => {
+    const id = 'smBtn' + m.charAt(0).toUpperCase() + m.slice(1);
+    document.querySelectorAll('[id="'+id+'"]').forEach(btn =>
+      btn.classList.toggle('selected', _soundMode === m)
+    );
+  });
+  // Ctrl btn ve hře
+  const tb = document.getElementById('soundToggleBtn');
+  if(tb){
+    tb.classList.toggle('active-mode', _soundMode !== 'off');
+    tb.textContent = _soundMode === 'music'  ? 'HUDBA ON' :
+                     _soundMode === 'quotes' ? 'HLÁŠKY ON' : 'ZVUK';
+  }
+  // Menu sound btn
+  const mb = document.getElementById('menuSoundBtn');
+  if(mb){
+    mb.classList.toggle('active-mode', _soundMode !== 'off');
+    mb.textContent = _soundMode === 'music'  ? 'HUDBA ON' :
+                     _soundMode === 'quotes' ? 'HLÁŠKY ON' : 'ZVUK OFF';
+  }
+}
+
+// Sound panel (ve hře)
+function openSoundPanel(){
+  isPaused = true;
+  document.getElementById('soundPanel').classList.add('open');
+  _updateSoundUI();
+}
+function closeSoundPanel(){
+  document.getElementById('soundPanel').classList.remove('open');
+  isPaused = false;
+}
+
+// Menu sound panel
+function openMenuSoundPanel(){
+  document.getElementById('menuSoundPanel').classList.add('open');
+  _updateSoundUI();
+}
+function closeMenuSoundPanel(){
+  document.getElementById('menuSoundPanel').classList.remove('open');
+}
+
+// Náhodná hláška v menu
+function playRandomQuote(){
+  const n = _nextQuoteIdx();
+  const a = new Audio(`assets/sounds/${n}.mp3`);
+  _safeVol(a, _masterVol);
+  a.play().catch(()=>{});
+  const btn = document.getElementById('quoteBtnMenu');
+  if(btn){
+    btn.textContent = 'HRAJE...';
+    a.addEventListener('ended', ()=>{ btn.textContent = 'HLÁŠKA'; });
+  }
+}
+
+
+
+// ════════════════════════════════════════════
+//  HELP OVERLAY
+// ════════════════════════════════════════════
+const HELP_DATA = {
+  1: {
+    title: 'V ZÁŘI REFLEKTORŮ',
+    text: 'Kryštof musí chytat správné rekvizity pro nadcházející scénku!\n\n' +
+          'Ovládání:\n' +
+          'Sipky vlevo / vpravo nebo A D — pohyb\n' +
+          'Sipka nahoru / W — skok\n' +
+          'Mobil: levý / pravý okraj = pohyb, střed = skok\n\n' +
+          'Kladné věci: +body\n' +
+          'Záporné věci: -body + ztráta života\n' +
+          'Cas: 60 sekund | Životy: 3'
+  },
+  2: {
+    title: 'KAPR INVADERS',
+    text: 'Plž musí vylovit všechny kapry z Bečvy co nejrychleji!\n\n' +
+          'Ovládání:\n' +
+          'Sipky vlevo / vpravo nebo A D — pohyb\n' +
+          'MEZERNÍK nebo sipka nahoru — vystřelit háček\n' +
+          'Mobil: levý / pravý okraj = pohyb, střed = háček\n\n' +
+          'Pozor — kapři střílí zpět!\n' +
+          'Skóre = body za kapry | Čas se počítá'
+  },
+  3: {
+    title: 'STARTED FROM THE BOTTOM',
+    text: 'Vilda se šplhá po roštu co nejvýše!\n\n' +
+          'Ovládání:\n' +
+          'Sipky vlevo / vpravo nebo A D — pohyb\n' +
+          'Sipka nahoru / W — skok\n' +
+          'Mobil: levý / pravý okraj = pohyb, střed = skok\n\n' +
+          'Rošt klesá dolů — neupadni!\n' +
+          'Skóre = dosažené patro'
+  },
+  4: {
+    title: 'NAJDI SVOJE REKVIZITY',
+    text: 'Michal jako had sbírá rekvizity roztroušené po scéně!\n\n' +
+          'Ovládání:\n' +
+          'Sipky nahoru / dolu / vlevo / vpravo — změna směru\n' +
+          'Mobil: swipe prstem po obrazovce\n\n' +
+          'Nevraž do překážek ani do sebe!\n' +
+          'Skóre = počet sebraných rekvizit\n' +
+          'Volba rychlosti: Pomalu / Středně / Rychle'
+  }
+};
+
+function showGameHelp(){
+  const data = HELP_DATA[currentGame];
+  if(!data) return;
+  document.getElementById('helpTitle').textContent = data.title;
+  document.getElementById('helpText').textContent = data.text;
+  document.getElementById('helpOverlay').classList.add('open');
+  isPaused = true;
+}
+
+function closeHelp(){
+  document.getElementById('helpOverlay').classList.remove('open');
+  isPaused = false;
+}
+
+
+function px(ctx,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),w,h);}
+
+// ════════════════════════════════════════════
+//  DRAW CHARACTERS
+// ════════════════════════════════════════════
+function drawKrystof(ctx,x,y){
+  px(ctx,x+12,y+48,10,16,'#222');px(ctx,x+30,y+48,10,16,'#222');
+  px(ctx,x+10,y+62,12,5,'#111');px(ctx,x+28,y+62,12,5,'#111');
+  ctx.fillStyle='#c9a94e';ctx.fillRect(x+6,y+22,40,28);
+  ctx.fillStyle='#8a6620';
+  for(let i=0;i<3;i++)for(let j=0;j<2;j++)ctx.fillRect(x+9+i*12,y+26+j*10,4,4);
+  px(ctx,x+6,y+46,40,4,'#333');
+  px(ctx,x+14,y+4,24,20,'#d4956a');
+  px(ctx,x+12,y+2,28,8,'#111');
+  px(ctx,x+15,y+14,9,5,'#ff8800');px(ctx,x+26,y+14,9,5,'#ff8800');
+  px(ctx,x+16,y+20,20,3,'#333');
+  px(ctx,x+0,y+24,8,8,'#d4956a');px(ctx,x+44,y+24,8,8,'#d4956a');
+}
+
+function drawVilda(ctx,x,y,face){
+  ctx.save();
+  if(face===-1){ctx.translate(x+32,0);ctx.scale(-1,1);x=0;}
+  px(ctx,x+7,y+38,9,14,'#111');px(ctx,x+20,y+38,9,14,'#111');
+  px(ctx,x+5,y+50,11,5,'#222');px(ctx,x+18,y+50,11,5,'#222');
+  ctx.fillStyle='#c9a94e';ctx.fillRect(x+3,y+18,26,22);
+  ctx.fillStyle='#7a5c1e';
+  for(let i=0;i<2;i++)for(let j=0;j<3;j++)ctx.fillRect(x+5+i*10,y+21+j*6,4,4);
+  px(ctx,x+3,y+37,26,4,'#222');
+  px(ctx,x+8,y+4,16,16,'#d4956a');
+  px(ctx,x+7,y+2,18,7,'#111');
+  px(ctx,x+9,y+12,7,4,'#222244');px(ctx,x+17,y+12,7,4,'#222244');
+  ctx.fillStyle='rgba(0,180,255,0.5)';ctx.fillRect(x+9,y+12,7,4);ctx.fillRect(x+17,y+12,7,4);
+  ctx.strokeStyle='#eee';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x+8,y+17,3,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#8B4513';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+28,y+22);ctx.lineTo(x+36,y+52);ctx.stroke();
+  px(ctx,x-2,y+22,8,8,'#d4956a');px(ctx,x+26,y+20,8,8,'#d4956a');
+  ctx.restore();
+}
+
+function drawMichalHead(ctx,cx,cy,sz){
+  px(ctx,cx-sz/2,cy-sz*.9,sz,sz*.45,'#111');
+  px(ctx,cx-sz*.7,cy-sz*.55,sz*1.4,sz*.2,'#111');
+  px(ctx,cx-sz*.4,cy-sz*.5,sz*.8,sz*.7,'#d4956a');
+  px(ctx,cx-sz*.35,cy-sz*.25,sz*.3,sz*.22,'#ff8800');
+  px(ctx,cx+sz*.05,cy-sz*.25,sz*.3,sz*.22,'#ff8800');
+  px(ctx,cx-sz*.3,cy+sz*.15,sz*.6,sz*.2,'#333');
+  px(ctx,cx-sz*.5,cy+sz*.3,sz,sz*.3,'#2233aa');
+}
+
+// ════════════════════════════════════════════
+//  GAME 1 — CHYTAČ REKVIZIT (Kryštof)
+// ════════════════════════════════════════════
+function game1(canvas){
+  const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  setupCanvasTouch(canvas,1);
+  const PROPS=[
+    {img:'sako',    val:+15, good:true},
+    {img:'kompas',  val:+10, good:true},
+    {img:'hrnek',   val:+8,  good:true},
+    {img:'rukavice',val:+12, good:true},
+    {img:'klobouk', val:+10, good:true},
+    {img:'lahev',   val:+5,  good:true},
+    {img:'pistole', val:-15, good:false},
+    {img:'ryba',    val:-10, good:false},
+    {img:'pes',     val:-12, good:false},
+    {img:'bota',    val:-8,  good:false},
+    {img:'policie', val:-20, good:false},
+  ];
+  const PW=52,PH=64;
+  const st={score:0,lives:3,timeLeft:60,px:W/2-PW/2,py:H-PH-30,spd:4,pvy:0,onGround:true,items:[],msgs:[],frame:0,active:true};
+  const G1_FLOOR=H-PH-30;
+  _game1Timer=setInterval(()=>{
+    if(!st.active||!document.getElementById('screen-game').classList.contains('active')){clearInterval(_game1Timer);_game1Timer=null;return;}
+    st.timeLeft--;
+    if(st.timeLeft<=0){clearInterval(_game1Timer);_game1Timer=null;st.active=false;setTimeout(()=>triggerGameOver(st.score,'bodů','Čas vypršel!'),400);}
+  },1000);
+  function loop(){
+    if(isPaused){gameLoopId=requestAnimationFrame(loop);return;}
+    st.frame++;
+    if(!st.active)return;
+    if(K.left&&st.px>0)st.px-=st.spd;
+    if(K.right&&st.px+PW<W)st.px+=st.spd;
+    if(K.up&&st.onGround){st.pvy=-10;st.onGround=false;}
+    st.pvy=Math.min(st.pvy+0.5,14);
+    st.py+=st.pvy;
+    if(st.py>=G1_FLOOR){st.py=G1_FLOOR;st.pvy=0;st.onGround=true;}
+    const interval=Math.max(22,55-Math.floor((60-st.timeLeft)*.65));
+    if(st.frame%interval===0){
+      const p=PROPS[Math.floor(Math.random()*PROPS.length)];
+      st.items.push({x:20+Math.random()*(W-60),y:-44,w:38,h:44,vy:2+Math.random()*2+(60-st.timeLeft)*.06,prop:p});
+    }
+    st.items=st.items.filter(it=>{
+      it.y+=it.vy;
+      if(it.y+it.h>st.py+4&&it.y<st.py+PH-4&&it.x+it.w>st.px+4&&it.x<st.px+PW-4){
+        st.score=Math.max(0,st.score+it.prop.val);
+        document.getElementById('hudScore').textContent='SKÓRE: '+st.score;
+        st.msgs.push({x:it.x,y:it.y,t:(it.prop.val>0?'+':'')+it.prop.val,col:it.prop.good?'#00ff41':'#ff3333',life:50});
+        if(!it.prop.good){
+          st.lives--;
+          document.getElementById('hudLives').textContent='+'.repeat(Math.max(0,st.lives));
+          if(st.lives<=0){clearInterval(timer);st.active=false;setTimeout(()=>triggerGameOver(st.score,'bodů','Ztratil jsi všechny životy!'),400);}
+        }
+        return false;
+      }
+      return it.y<H+40;
+    });
+    st.msgs=st.msgs.filter(m=>{m.y-=.8;m.life--;return m.life>0;});
+    if(imgs.krystof_bg.complete&&imgs.krystof_bg.naturalWidth>0){ctx.drawImage(imgs.krystof_bg,0,0,W,H);}else{ctx.fillStyle='#0d001a';ctx.fillRect(0,0,W,H);}
+    const tr=st.timeLeft/60;
+    px(ctx,10,H-10,W-20,7,'#222');
+    px(ctx,10,H-10,Math.floor((W-20)*tr),7,tr>.3?'#00ff41':'#ff3333');
+    st.items.forEach(it=>{
+      const img=imgs[it.prop.img];
+      if(img&&img.complete&&img.naturalWidth>0){const ratio=img.naturalWidth/img.naturalHeight;const dw=it.h*ratio;ctx.drawImage(img,it.x+(it.w-dw)/2,it.y,dw,it.h);}
+      else{px(ctx,it.x,it.y,it.w,it.h,it.prop.good?'#0d1a0d':'#1a0d0d');ctx.strokeStyle=it.prop.good?'#00ff41':'#ff3333';ctx.lineWidth=2;ctx.strokeRect(it.x,it.y,it.w,it.h);}
+      ctx.save();ctx.fillStyle=it.prop.good?'#00ff44':'#ff3333';ctx.font="bold 13px 'VT323'";
+      ctx.fillText((it.prop.val>0?'+':'')+it.prop.val,it.x+1,it.y+13);ctx.restore();
+    });
+    {const sk=imgs.sprite_krystof;if(sk.complete&&sk.naturalWidth>0){const dh=PH*2.2;const dw=dh*sk.naturalWidth/sk.naturalHeight;ctx.drawImage(sk,st.px+PW/2-dw/2,st.py+PH-dh,dw,dh);}else{drawKrystof(ctx,st.px,st.py);}}
+    st.msgs.forEach(m=>{ctx.globalAlpha=m.life/50;ctx.fillStyle=m.col;ctx.font="22px 'VT323'";ctx.fillText(m.t,m.x,m.y);ctx.globalAlpha=1;});
+    if(st.frame===1)document.getElementById('hudLives').textContent='+ + +';
+    gameLoopId=requestAnimationFrame(loop);
+  }
+  gameLoopId=requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════════
+//  GAME 2 — KAPR INVADERS (Plž) — with sprite
+// ════════════════════════════════════════════
+function game2(canvas){
+  const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  setupCanvasTouch(canvas,2);
+  const COLS=10, ROWS=5;
+  const CW=Math.min(52,Math.floor((W-60)/COLS)), CH=Math.round(CW*0.55);
+  const st={
+    lives:3,score:0,startTime:Date.now(),elapsed:0,
+    player:{x:W/2-20,y:Math.floor(H*0.87)-60,w:40,h:60,spd:5},
+    hooks:[],fishBullets:[],carps:[],
+    dir:1,carpTimer:0,shootTimer:0,shotCool:0,
+    frame:0,active:true,level:1,hookInAir:false,levelDelay:false
+  };
+  document.getElementById('hudLives').textContent='+ + +';
+  function initCarps(){
+    st.carps=[];
+    const sx=(W-COLS*(CW+10))/2;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+      st.carps.push({x:sx+c*(CW+10),y:30+r*Math.round(CH*2.4),w:CW,h:CH,alive:true});
+  }
+  initCarps();
+  function drawCarp(x,y,w,h){
+    ctx.fillStyle='#e87722';ctx.beginPath();ctx.ellipse(x+w/2+4,y+h/2,w/2,h/2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#c55a00';ctx.beginPath();ctx.moveTo(x+4,y+h/2);ctx.lineTo(x-5,y+2);ctx.lineTo(x-5,y+h-2);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#000';ctx.beginPath();ctx.arc(x+w-4,y+h*.35,2.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#a04000';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x+w,y+h*.5);ctx.lineTo(x+w+7,y+h*.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+w,y+h*.5);ctx.lineTo(x+w+7,y+h*.65);ctx.stroke();
+  }
+  function drawPlayer(x,y,w,h){
+    if(plzSprite.complete && plzSprite.naturalWidth > 0){
+      // Draw sprite: center it, feet at y+h
+      const sw = Math.round(w * 1.2);
+      const sh = Math.round(sw * (plzSprite.naturalHeight / plzSprite.naturalWidth));
+      const sx = x + w/2 - sw/2;
+      const sy = y + h - sh;
+      ctx.drawImage(plzSprite, sx, sy, sw, sh);
+      // Draw fishing rod line from top-right of sprite
+      ctx.strokeStyle='#ddcc44';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(sx+sw*0.82,sy+sh*0.04);ctx.lineTo(sx+sw*0.82,y-5);ctx.stroke();
+    } else {
+      // Fallback drawn character
+      ctx.strokeStyle='#8B4513';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(x+38,y+12);ctx.lineTo(x+62,y-42);ctx.stroke();
+      px(ctx,x+8,y+46,10,16,'#111');px(ctx,x+26,y+46,10,16,'#111');
+      px(ctx,x+4,y+44,36,5,'#8B0000');
+      ctx.fillStyle='#999';ctx.fillRect(x+4,y+20,36,26);
+      px(ctx,x+12,y+2,20,18,'#d4956a');
+      ctx.fillStyle='#5a3a10';ctx.fillRect(x+10,y,22,8);
+      px(ctx,x+0,y+26,8,8,'#d4956a');px(ctx,x+40,y+26,8,8,'#d4956a');
+    }
+  }
+  function loop(){
+    if(isPaused){gameLoopId=requestAnimationFrame(loop);return;}
+    st.frame++;
+    if(!st.active)return;
+    st.elapsed=((Date.now()-st.startTime)/1000).toFixed(1);
+    document.getElementById('hudScore').textContent=`${st.elapsed}s | +${st.score}b`;
+    if(K.left&&st.player.x>0)st.player.x-=st.player.spd;
+    if(K.right&&st.player.x+st.player.w<W)st.player.x+=st.player.spd;
+    if((K.space||K.up)&&st.shotCool<=0&&!st.hookInAir){
+      st.hooks=[];st.hooks.push({x:st.player.x+st.player.w/2-2,y:st.player.y,w:4,h:22,vy:-6});
+      st.hookInAir=true;st.shotCool=22;
+    }
+    if(st.shotCool>0)st.shotCool--;
+    st.carpTimer++;
+    const mv=Math.max(7,26-st.level*2);
+    if(st.carpTimer>=mv){
+      st.carpTimer=0;
+      const alive=st.carps.filter(c=>c.alive);let wall=false;
+      alive.forEach(c=>{c.x+=st.dir*(6+st.level);if(c.x<=10||c.x+c.w>=W-10)wall=true;});
+      if(wall){st.dir*=-1;alive.forEach(c=>{c.y+=16;});}
+      alive.forEach(c=>{if(c.y+c.h>=st.player.y-10){st.active=false;setTimeout(()=>triggerGameOver(st.score,'bodů',`Kapři tě dostali za ${st.elapsed}s`),400);}});
+    }
+    st.shootTimer++;
+    const se=Math.max(20,70-st.level*7);
+    if(st.shootTimer>=se){
+      st.shootTimer=0;
+      const alive=st.carps.filter(c=>c.alive);
+      if(alive.length){const sh=alive[Math.floor(Math.random()*alive.length)];st.fishBullets.push({x:sh.x+sh.w/2-4,y:sh.y+sh.h,w:8,h:8,vy:3+st.level*.5});}
+    }
+    st.hooks=st.hooks.filter(h=>{
+      h.y+=h.vy;let hit=false;
+      st.carps.forEach(c=>{
+        if(!c.alive)return;
+        if(h.x<c.x+c.w&&h.x+h.w>c.x&&h.y<c.y+c.h&&h.y+h.h>c.y){c.alive=false;st.score+=10*st.level;hit=true;setTimeout(()=>{st.hookInAir=false;},300);}
+      });
+      if(h.y<-30){setTimeout(()=>{st.hookInAir=false;},300);}
+      return !hit&&h.y>-30;
+    });
+    st.fishBullets=st.fishBullets.filter(b=>{
+      b.y+=b.vy;const p=st.player;
+      if(b.x<p.x+p.w&&b.x+b.w>p.x&&b.y<p.y+p.h&&b.y+b.h>p.y){
+        st.lives--;document.getElementById('hudLives').textContent='[*]'.repeat(Math.max(0,st.lives));
+        if(st.lives<=0){st.active=false;setTimeout(()=>triggerGameOver(st.score,'bodů',`Přežil ${st.elapsed}s`),400);}
+        return false;
+      }
+      return b.y<H+20;
+    });
+    if(st.carps.every(c=>!c.alive)&&!st.levelDelay){st.levelDelay=true;setTimeout(()=>{st.level++;initCarps();st.levelDelay=false;},300);}
+    if(imgs.plz_bg.complete&&imgs.plz_bg.naturalWidth>0){ctx.drawImage(imgs.plz_bg,0,0,W,H);}else{ctx.fillStyle='#050d1a';ctx.fillRect(0,0,W,H);ctx.fillStyle='#071828';ctx.fillRect(0,H*.72,W,H*.28);}
+    ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(0,0,W,32);
+    ctx.fillStyle='#ffd700';ctx.font="20px 'VT323'";ctx.fillText(`LEVEL ${st.level}`,10,24);
+    st.carps.forEach(c=>{if(c.alive){const ri=imgs.ryba;if(ri.complete&&ri.naturalWidth>0){ctx.drawImage(ri,c.x,c.y,c.w,c.h);}else{drawCarp(c.x,c.y,c.w,c.h);}}});
+    ctx.strokeStyle='#ddcc44';ctx.lineWidth=2;
+    st.hooks.forEach(h=>{
+      ctx.beginPath();ctx.moveTo(h.x+2,st.player.y);ctx.lineTo(h.x+2,h.y);ctx.stroke();
+      ctx.strokeStyle='#aaa';ctx.lineWidth=2;ctx.beginPath();ctx.arc(h.x+2,h.y,5,.2,Math.PI*1.4);ctx.stroke();
+      ctx.strokeStyle='#ddcc44';
+    });
+    st.fishBullets.forEach(b=>{ctx.fillStyle='rgba(255,140,0,.65)';ctx.beginPath();ctx.arc(b.x+4,b.y+4,5,0,Math.PI*2);ctx.fill();});
+    drawPlayer(st.player.x,st.player.y,st.player.w,st.player.h);
+    // Touch hint
+    if(st.frame < 120){
+      ctx.globalAlpha = Math.max(0, 1 - st.frame/90);
+      ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(W/2-100,H-36,200,26);
+      ctx.fillStyle='#ffd700';ctx.font="16px 'VT323'";ctx.textAlign='center';
+      ctx.fillText('STŘED = VYSTŘELIT  |  ŠIPKY = POHYB',W/2,H-18);
+      ctx.textAlign='left';ctx.globalAlpha=1;
+    }
+    gameLoopId=requestAnimationFrame(loop);
+  }
+  gameLoopId=requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════════
+//  GAME 3 — VÝSTUP NA ROŠT (Vilda)
+//  World-coordinate camera-follow system.
+//  Player ONLY jumps when UP is pressed.
+//  Constant jump height ~1.8 × platform gap.
+//  Rising "curtain" death floor for urgency.
+// ════════════════════════════════════════════
+function game3(canvas){
+  const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  setupCanvasTouch(canvas,3);
+
+  const TW = Math.min(440, Math.floor(W * 0.62));
+  const TX = (W - TW) / 2;
+  const PW = 28, PH = 42;
+  const GAP = 92;        // world pixels between platforms
+  const JUMP_VY = 13;    // gives max height 169px ≈ 1.84×GAP
+  const GRAV = 0.48;
+
+  // Camera: keeps player at ~38% from top
+  // camY = worldPy - H*0.38  (world Y of screen top)
+  let camY = -(H * 0.38);   // initial: player(worldPy=0) at 38% from top
+
+  let nextFloor = 0;
+  let topGenY = 0;    // world Y of topmost generated platform
+  const st = {
+    worldPx: TX + TW/2 - PW/2,
+    worldPy: 0,        // player starts at world Y = 0 (on start platform)
+    pvx: 0, pvy: 0,
+    onGround: true,
+
+    score: 0,
+
+    // Rising curtain (death floor) — world Y, rises upward (decreases)
+    curtainY: 600,     // starts well below player
+    curtainSpd: 0.3,
+
+    platforms: [],
+    frame: 0,
+    active: true,
+    face: 1,
+  };
+
+  // Start platform directly under player feet
+  st.platforms.push({
+    worldY: PH,  // player feet = worldPy+PH = 42 = PH  -> standing on it
+    x: TX + TW/2 - 70, w: 140, h: 10,
+    moving: false, spd: 0, dir: 1, floor: nextFloor++
+  });
+  topGenY = PH;
+
+  // Generate 60 platforms above
+  for(let i=0;i<400;i++){
+    topGenY -= GAP + Math.random()*22;
+    _genPlatform(topGenY);
+  }
+
+  function _genPlatform(worldY){
+    const f = nextFloor++;
+    // Šířka: do patra 50 klesá mírně, pak agresivněji, od 200 jen minimum
+    const pw = Math.max(TW*0.09, TW * 0.52 / (1 + f * 0.018));
+    // Horizontální pozice: větší náhodnost, platforma se nedá "sjet na ose"
+    const margin = Math.max(4, TW - pw - 8);
+    // Přidáme bias — každá platforma se snaží být v jiné části věže než předchozí
+    const side = Math.random();
+    const mx = TX + 4 + (side < 0.33 ? Math.random()*margin*0.45
+                       : side < 0.66 ? margin*0.28 + Math.random()*margin*0.44
+                                     : margin*0.55 + Math.random()*margin*0.45);
+    // Pohybující platformy: od patra 15, od 80 většina, od 150 skoro všechny
+    const movProb = f < 15  ? 0
+                  : f < 80  ? Math.min(0.55, 0.05 + f * 0.006)
+                  : f < 150 ? Math.min(0.80, 0.50 + (f-80) * 0.004)
+                             : Math.min(0.97, 0.80 + (f-150) * 0.003);
+    const moving  = Math.random() < movProb;
+    // Rychlost: strmě roste, po patře 100 výrazně skočí
+    const spd = f < 100 ? 0.4 + Math.log(1 + f) * 0.9
+                        : 0.4 + Math.log(1 + f) * 0.9 + (f - 100) * 0.018;
+    st.platforms.push({ worldY, x: mx, w: pw, h: 10, moving, spd, dir: 1, floor: f });
+  }
+
+  function loop(){
+    if(isPaused){ gameLoopId=requestAnimationFrame(loop); return; }
+    st.frame++;
+    if(!st.active) return;
+
+    // ── Camera minimum scroll (urgency) ──────────────────────
+    // Camera always drifts upward slowly; pace increases with score
+    const minScroll = 0.22 + st.score * 0.007;
+    camY -= minScroll;
+
+    // Camera also follows player upward (don't let player escape top)
+    const targetCamY = st.worldPy - H * 0.38;
+    if(targetCamY < camY) camY = targetCamY;
+
+    // ── Rising curtain ────────────────────────────────────────
+    st.curtainSpd = Math.min(3.5, 0.3 + st.score * 0.010);
+    st.curtainY -= st.curtainSpd;
+
+    // ── Jump (edge-triggered — ONLY on fresh key press) ───────
+    const upNow = K.up || K.space;
+    if(upNow && st.onGround){
+      st.pvy = -JUMP_VY;
+      st.onGround = false;
+    }
+
+    // ── Horizontal movement ───────────────────────────────────
+    if(K.left)       { st.pvx = Math.max(st.pvx - 0.9, -5); st.face = -1; }
+    else if(K.right) { st.pvx = Math.min(st.pvx + 0.9,  5); st.face =  1; }
+    else               st.pvx *= 0.78;
+    st.worldPx += st.pvx;
+    if(st.worldPx < TX)            { st.worldPx = TX;            st.pvx = 0; }
+    if(st.worldPx+PW > TX+TW)      { st.worldPx = TX+TW-PW;      st.pvx = 0; }
+
+    // ── Gravity + vertical ────────────────────────────────────
+    st.pvy = Math.min(st.pvy + GRAV, 18);
+    const prevFeet = st.worldPy + PH;
+    st.worldPy += st.pvy;
+
+    // ── Platform collision (falling only) ─────────────────────
+    st.onGround = false;
+    if(st.pvy > 0){
+      const currFeet = st.worldPy + PH;
+      for(const p of st.platforms){
+        if(prevFeet <= p.worldY + 2 && currFeet >= p.worldY &&
+           st.worldPx+PW-4 > p.x && st.worldPx+4 < p.x+p.w){
+          st.worldPy = p.worldY - PH;
+          st.pvy = 0;
+          st.onGround = true;
+          // Score = highest platform floor reached
+          if(p.floor > st.score){
+            st.score = p.floor;
+            document.getElementById('hudScore').textContent = 'PATRO: ' + st.score;
+          }
+          break;
+        }
+      }
+    }
+
+    // ── Move platforms horizontally ───────────────────────────
+    st.platforms.forEach(p => {
+      if(p.moving){
+        p.x += p.dir * p.spd;
+        if(p.x < TX+2 || p.x+p.w > TX+TW-2) p.dir *= -1;
+      }
+    });
+
+    // ── Generate more platforms above camera ──────────────────
+    while(topGenY > camY - H * 4){
+      topGenY -= GAP + Math.random()*22;
+      _genPlatform(topGenY);
+    }
+
+    // ── Remove old platforms ──────────────────────────────────
+    st.platforms = st.platforms.filter(p => {
+      const sY = p.worldY - camY;
+      return sY < H + 300 && sY > -H*60;
+    });
+
+    // ── Death: fell below curtain OR off screen bottom ────────
+    const playerScreenY = st.worldPy - camY;
+    if(st.worldPy + PH > st.curtainY || playerScreenY > H * 0.9){
+      st.active = false;
+      setTimeout(()=>triggerGameOver(st.score,'pater',`Spadl jsi z patra ${st.score} zpět na jeviště!`),400);
+      return;
+    }
+
+    // ── DRAW ─────────────────────────────────────────────────
+    const hi = Math.min(st.score / 60, 1);
+
+    // Background
+    if(imgs.vilda_bg.complete&&imgs.vilda_bg.naturalWidth>0){ctx.drawImage(imgs.vilda_bg,0,0,W,H);}else{ctx.fillStyle=`rgb(${Math.floor(5+hi*8)},${Math.floor(2+hi*2)},${Math.floor(12+hi*22)})`;ctx.fillRect(0,0,W,H);}
+    ctx.fillStyle='rgba(0,0,0,0.72)';ctx.fillRect(0,0,TX,H);ctx.fillRect(TX+TW,0,W-TX-TW,H);
+
+    // Floor counter on side
+    if(TX > 20){
+      ctx.save();
+      ctx.fillStyle='#ffd700';ctx.font="clamp(18px,3vw,28px) 'VT323'";
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('PATRO',Math.floor(TX/2),H/2-14);
+      ctx.fillText(st.score,Math.floor(TX/2),H/2+16);
+      ctx.textBaseline='alphabetic';ctx.restore();
+    }
+
+    // Tower background
+    {const ti=imgs.vilda_tower;if(ti.complete&&ti.naturalWidth>0){const tSH=Math.max(1,ti.naturalHeight*(TW/Math.max(1,ti.naturalWidth)));const tOff=((-camY*0.5)%tSH+tSH)%tSH;ctx.save();ctx.beginPath();ctx.rect(TX,0,TW,H);ctx.clip();for(let ty=tOff-tSH*2;ty<H+tSH;ty+=tSH)ctx.drawImage(ti,TX,ty,TW,tSH);ctx.restore();}else{ctx.fillStyle='#050510';ctx.fillRect(TX,0,TW,H);}}
+
+    // Tower rigging walls
+    ctx.fillStyle = '#18083a';
+    ctx.fillRect(TX-7,0,7,H);
+    ctx.fillRect(TX+TW,0,7,H);
+    ctx.fillStyle = '#28145a';
+    ctx.fillRect(TX-7,0,3,H);
+    ctx.fillRect(TX+TW+4,0,3,H);
+
+    // Ropes (decorative) — animate slowly downward to suggest movement
+    ctx.strokeStyle = 'rgba(130,85,25,0.25)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,7]);
+    for(let i=1;i<5;i++){
+      const rx = TX + i*(TW/5);
+      const off = (st.frame*0.4 + i*17) % H;
+      ctx.beginPath(); ctx.moveTo(rx,off-H); ctx.lineTo(rx,off); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rx,off); ctx.lineTo(rx,off+H); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // Stage glow from far below
+    const pSY = st.worldPy - camY;
+    if(pSY > H * 0.55){
+      const g2=ctx.createLinearGradient(TX,H,TX,H*0.6);
+      g2.addColorStop(0,'rgba(255,200,80,0.10)');
+      g2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g2; ctx.fillRect(TX,0,TW,H);
+    }
+
+    // Platforms
+    st.platforms.forEach(p => {
+      const sY = p.worldY - camY;
+      if(sY < -15 || sY > H+15) return;
+      const f = p.floor || 0;
+      // Colour cycles through 5 tiers every 25 floors
+      ctx.fillStyle='#7a7a7a';ctx.fillRect(p.x,sY,p.w,p.h);
+      ctx.fillStyle='#cccccc';ctx.fillRect(p.x,sY,p.w,3);
+      // Scaffolding border on wider ones
+      if(p.w > TW*0.35){
+        ctx.strokeStyle='rgba(255,255,255,0.10)';ctx.lineWidth=1;
+        ctx.strokeRect(p.x,sY,p.w,p.h);
+      }
+    });
+
+    // Player
+    {const sv=imgs.sprite_vilda;if(sv.complete&&sv.naturalWidth>0){const dh=PH*2.4;const dw=dh*sv.naturalWidth/sv.naturalHeight;const ddx=st.worldPx+PW/2-dw/2;const ddy=pSY+PH-dh;ctx.save();if(st.face===-1){ctx.translate(ddx+dw,ddy);ctx.scale(-1,1);ctx.drawImage(sv,0,0,dw,dh);}else{ctx.drawImage(sv,ddx,ddy,dw,dh);}ctx.restore();}else{drawVilda(ctx,st.worldPx,pSY,st.face);}}
+
+    // Rising curtain (death floor)
+    const curtainSY = st.curtainY - camY;
+    if(curtainSY < H + 60){
+      const cgrad = ctx.createLinearGradient(TX, curtainSY-40, TX, curtainSY+120);
+      cgrad.addColorStop(0,'rgba(120,0,0,0)');
+      cgrad.addColorStop(0.35,'rgba(160,0,0,0.75)');
+      cgrad.addColorStop(1,'rgba(80,0,0,1)');
+      ctx.fillStyle = cgrad;
+      ctx.fillRect(TX, curtainSY-40, TW, H - curtainSY + 40);
+      ctx.fillStyle = '#cc0000';
+      ctx.fillRect(TX, curtainSY, TW, 4);
+      if(curtainSY > 8 && curtainSY < H){
+        ctx.fillStyle = '#ff6666';
+        ctx.font = "22px 'VT323'";
+        ctx.fillText('ROŠT SE BLÍŽÍ KE DNU!', TX+8, curtainSY-8);
+      }
+    }
+
+    // Proximity flash
+    const dist = st.curtainY - (st.worldPy + PH);
+    if(dist < 220){
+      ctx.fillStyle=`rgba(255,0,0,${Math.max(0,0.3*(1-dist/220))})`;
+      ctx.fillRect(TX,0,TW,H);
+    }
+
+    // Touch hint
+    if(st.frame < 100){
+      ctx.globalAlpha = Math.max(0, 1-st.frame/80);
+      ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(TX+4,H-36,TW-8,26);
+      ctx.fillStyle='#ffd700';ctx.font="16px 'VT323'";ctx.textAlign='center';
+      ctx.fillText('STŘED = SKOK  |  STRANY = POHYB',TX+TW/2,H-18);
+      ctx.textAlign='left';ctx.globalAlpha=1;
+    }
+
+    gameLoopId = requestAnimationFrame(loop);
+  }
+  gameLoopId = requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════════
+//  GAME 4 — HAD (Michal)
+// ════════════════════════════════════════════
+let _snakeSpd = 2;
+function game4setup(canvas){
+  document.getElementById('speedOverlay').classList.add('open');
+}
+function startSnake(spd){
+  _snakeSpd=spd;
+  document.getElementById('speedOverlay').classList.remove('open');
+  game4(document.getElementById('gameCanvas'), spd);
+}
+
+function game4(canvas, spd){
+  const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  const CELL=Math.max(28,Math.min(38,Math.floor(Math.min(W,H)/16)));
+  const COLS=Math.floor(W/CELL), ROWS=Math.floor(H/CELL);
+  const BASE=[0,18,11,6][spd];
+
+  const PROPS=['klobouk','pistole','kompas','rukavice','sako','hrnek','bota','policie'];
+
+  // Obstacle shapes (dx,dy offsets)
+  const SHAPES=[
+    [{dx:0,dy:0},{dx:1,dy:0},{dx:2,dy:0}],           // ---
+    [{dx:0,dy:0},{dx:0,dy:1},{dx:0,dy:2}],           // |
+    [{dx:0,dy:0},{dx:1,dy:0},{dx:2,dy:0},{dx:3,dy:0}], // ----
+    [{dx:0,dy:0},{dx:1,dy:0},{dx:2,dy:0},{dx:2,dy:1}], // L
+    [{dx:0,dy:0},{dx:0,dy:1},{dx:0,dy:2},{dx:1,dy:2}], // J
+    [{dx:1,dy:0},{dx:0,dy:1},{dx:1,dy:1},{dx:2,dy:1}], // T
+    [{dx:0,dy:0},{dx:1,dy:0},{dx:1,dy:1},{dx:2,dy:1}], // Z
+    [{dx:0,dy:1},{dx:1,dy:0},{dx:1,dy:1},{dx:2,dy:0}], // S
+  ];
+
+  const st={
+    score:0,eaten:0,
+    snake:[{x:Math.floor(COLS/2),y:Math.floor(ROWS/2)}],
+    dir:{x:1,y:0},nextDir:{x:1,y:0},
+    food:null,obsCells:new Set(),
+    frame:0,moveTimer:0,active:true,
+    interval:BASE,effects:[],
+  };
+  for(let i=1;i<4;i++) st.snake.push({x:st.snake[0].x-i,y:st.snake[0].y});
+
+  function key(x,y){return x+','+y;}
+
+  function genObstacles(){
+    const count=5+Math.floor(Math.random()*4);
+    for(let i=0;i<count;i++){
+      const shape=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      let ox,oy,tries=0;
+      do{ox=1+Math.floor(Math.random()*(COLS-5));oy=1+Math.floor(Math.random()*(ROWS-5));tries++;}
+      while(tries<80&&shape.some(d=>{
+        const cx=ox+d.dx,cy=oy+d.dy;
+        return st.snake.some(s=>Math.abs(s.x-cx)<7&&Math.abs(s.y-cy)<7)||st.obsCells.has(key(cx,cy))||[...st.obsCells].some(k=>{const[ex,ey]=k.split(',').map(Number);return Math.abs(ex-cx)<3&&Math.abs(ey-cy)<3;});
+      }));
+      shape.forEach(d=>{const cx=ox+d.dx,cy=oy+d.dy;if(cx>=0&&cx<COLS&&cy>=0&&cy<ROWS)st.obsCells.add(key(cx,cy));});
+    }
+  }
+
+  function addObstacle(){
+    // přidá jednu 1x1 překážku, daleko od hada a od jídla
+    let ox,oy,tries=0;
+    do{ox=1+Math.floor(Math.random()*(COLS-2));oy=1+Math.floor(Math.random()*(ROWS-2));tries++;}
+    while(tries<120&&(
+      st.snake.some(s=>Math.abs(s.x-ox)<5&&Math.abs(s.y-oy)<5)||
+      (st.food&&Math.abs(st.food.x-ox)<3&&Math.abs(st.food.y-oy)<3)||
+      st.obsCells.has(key(ox,oy))
+    ));
+    if(ox>=0&&ox<COLS&&oy>=0&&oy<ROWS) st.obsCells.add(key(ox,oy));
+  }
+
+  function bfsReachable(fx,fy){
+    const visited=new Set();
+    const q=[{x:st.snake[0].x,y:st.snake[0].y}];
+    while(q.length){
+      const {x,y}=q.shift();const k=key(x,y);
+      if(visited.has(k))continue;visited.add(k);
+      if(x===fx&&y===fy)return true;
+      for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx=x+dx,ny=y+dy;
+        if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&!st.obsCells.has(key(nx,ny))&&!visited.has(key(nx,ny)))
+          q.push({x:nx,y:ny});
+      }
+    }
+    return false;
+  }
+  let _propIdx=0;
+  function spawnFood(){
+    let x,y,tries=0;
+    do{x=Math.floor(Math.random()*COLS);y=Math.floor(Math.random()*ROWS);tries++;}
+    while(tries<300&&(st.snake.some(s=>s.x===x&&s.y===y)||st.obsCells.has(key(x,y))||!bfsReachable(x,y)));
+    const prop=PROPS[_propIdx%PROPS.length];_propIdx++;
+    st.food={x,y,prop};
+  }
+
+  genObstacles(); spawnFood();
+
+  function handleDir(e){
+    const {x,y}=st.dir;
+    if(e.key==='ArrowLeft' &&x!==1) st.nextDir={x:-1,y:0};
+    if(e.key==='ArrowRight'&&x!==-1)st.nextDir={x:1,y:0};
+    if(e.key==='ArrowUp'   &&y!==1) st.nextDir={x:0,y:-1};
+    if(e.key==='ArrowDown' &&y!==-1)st.nextDir={x:0,y:1};
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();
+  }
+  document.addEventListener('keydown',handleDir);
+
+  // Swipe
+  let tx=0,ty=0;
+  canvas.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+  canvas.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    const {x,y}=st.dir;
+    if(Math.abs(dx)>Math.abs(dy)){
+      if(dx>20&&x!==-1)st.nextDir={x:1,y:0};
+      if(dx<-20&&x!==1)st.nextDir={x:-1,y:0};
+    }else{
+      if(dy>20&&y!==-1)st.nextDir={x:0,y:1};
+      if(dy<-20&&y!==1)st.nextDir={x:0,y:-1};
+    }
+  },{passive:true});
+
+  function loop(){
+    if(isPaused){gameLoopId=requestAnimationFrame(loop);return;}
+    st.frame++;if(!st.active)return;
+    st.moveTimer++;
+    if(st.moveTimer>=st.interval){
+      st.moveTimer=0;
+      st.dir={...st.nextDir};
+      const h=st.snake[0];
+      const nx=h.x+st.dir.x, ny=h.y+st.dir.y;
+      if(nx<0||nx>=COLS||ny<0||ny>=ROWS||st.snake.some(s=>s.x===nx&&s.y===ny)||st.obsCells.has(key(nx,ny))){
+        document.removeEventListener('keydown',handleDir);st.active=false;
+        setTimeout(()=>triggerGameOver(st.score,'rekvizit',`Sebral jsi ${st.eaten} rekvizit! (${['','POMALU','STŘEDNĚ','RYCHLE'][_snakeSpd]})`,40+_snakeSpd),400);return;
+      }
+      st.snake.unshift({x:nx,y:ny});
+      if(st.food&&nx===st.food.x&&ny===st.food.y){
+        st.score++;st.eaten++;
+        st.interval=Math.max(3,BASE-Math.floor(st.eaten/5));
+        document.getElementById('hudScore').textContent='SKÓRE: '+st.score;
+        st.effects.push({x:nx*CELL+CELL/2,y:ny*CELL,t:'+1',life:38,col:'#00ff41'});
+        if(st.eaten%3===0) addObstacle();
+        spawnFood();
+      }else{st.snake.pop();}
+    }
+    st.effects=st.effects.filter(e=>{e.y-=.7;e.life--;return e.life>0;});
+
+    if(imgs.michal_bg.complete&&imgs.michal_bg.naturalWidth>0){ctx.drawImage(imgs.michal_bg,0,0,W,H);}else{ctx.fillStyle='#0a0a12';ctx.fillRect(0,0,W,H);}
+    // Grid
+    ctx.fillStyle='#12122a';
+    for(let cx=0;cx<COLS;cx++)for(let cy=0;cy<ROWS;cy++)ctx.fillRect(cx*CELL+CELL/2-1,cy*CELL+CELL/2-1,2,2);
+
+    // Obstacles
+    st.obsCells.forEach(k=>{
+      const [ox,oy]=k.split(',').map(Number);
+      px(ctx,ox*CELL+1,oy*CELL+1,CELL-2,CELL-2,'#1e1005');
+      ctx.strokeStyle='#5a3000';ctx.lineWidth=2;ctx.strokeRect(ox*CELL+1,oy*CELL+1,CELL-2,CELL-2);
+      ctx.strokeStyle='#3a2000';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(ox*CELL+3,oy*CELL+3);ctx.lineTo(ox*CELL+CELL-3,oy*CELL+CELL-3);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ox*CELL+CELL-3,oy*CELL+3);ctx.lineTo(ox*CELL+3,oy*CELL+CELL-3);ctx.stroke();
+    });
+
+    // Food
+    if(st.food){
+      ctx.fillStyle='rgba(255,215,0,.2)';ctx.fillRect(st.food.x*CELL-3,st.food.y*CELL-3,CELL+6,CELL+6);
+      const fi=imgs[st.food.prop];
+      if(fi&&fi.complete&&fi.naturalWidth>0){ctx.drawImage(fi,st.food.x*CELL,st.food.y*CELL,CELL,CELL);}
+      else{px(ctx,st.food.x*CELL,st.food.y*CELL,CELL,CELL,'#12120a');ctx.strokeStyle='#ffd700';ctx.lineWidth=1;ctx.strokeRect(st.food.x*CELL,st.food.y*CELL,CELL,CELL);}
+    }
+
+    // Snake
+    st.snake.forEach((seg,i)=>{
+      if(i===0){
+        const sm=imgs.sprite_michal;
+        if(sm.complete&&sm.naturalWidth>0){
+          ctx.save();ctx.translate(seg.x*CELL+CELL/2,seg.y*CELL+CELL/2);
+          if(st.dir.x===1){
+            // doprava – normálně
+          } else if(st.dir.x===-1){
+            // doleva – horizontální flip
+            ctx.scale(-1,1);
+          } else if(st.dir.y===1){
+            // dolů
+            ctx.rotate(Math.PI/2);
+          } else {
+            // nahoru
+            ctx.rotate(-Math.PI/2);
+          }
+          ctx.drawImage(sm,-CELL/2,-CELL/2,CELL,CELL);ctx.restore();
+        }else{px(ctx,seg.x*CELL,seg.y*CELL,CELL,CELL,'#2233aa');drawMichalHead(ctx,seg.x*CELL+CELL/2,seg.y*CELL+CELL/2,CELL);}
+      }else{
+        const vg=imgs.vagon;
+        if(vg.complete&&vg.naturalWidth>0){ctx.drawImage(vg,seg.x*CELL,seg.y*CELL,CELL,CELL);}
+        else{const t=1-i/st.snake.length;ctx.fillStyle=`rgba(${Math.floor(30+t*20)},${Math.floor(50+t*30)},${Math.floor(150+t*80)},.92)`;ctx.fillRect(seg.x*CELL+1,seg.y*CELL+1,CELL-2,CELL-2);}
+      }
+    });
+
+    st.effects.forEach(e=>{
+      ctx.globalAlpha=e.life/38;ctx.fillStyle=e.col;
+      ctx.font="18px 'VT323'";ctx.fillText(e.t,e.x-10,e.y);
+    });
+    ctx.globalAlpha=1;
+
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(W-110,H-22,104,18);
+    ctx.fillStyle='#ffd700';ctx.font="15px 'VT323'";
+    const spdShow=BASE-st.interval+1;
+    ctx.fillText(`SPD:${spdShow}  LEN:${st.snake.length}`,W-107,H-8);
+
+    gameLoopId=requestAnimationFrame(loop);
+  }
+  gameLoopId=requestAnimationFrame(loop);
+}
+// ── Auto-start menu hudby po první interakci ──
+// Prohlížeče blokují autoplay dokud uživatel neklikne/neťukne
+(function(){
+  function _autoStartMusic(){
+    if(_soundMode === 'off'){
+      _soundMode = 'music';
+      _playTrack(GAME_MUSIC.menu);
+      _updateSoundUI();
+    }
+    document.removeEventListener('click', _autoStartMusic);
+    document.removeEventListener('touchstart', _autoStartMusic);
+    document.removeEventListener('keydown', _autoStartMusic);
+  }
+  document.addEventListener('click', _autoStartMusic);
+  document.addEventListener('touchstart', _autoStartMusic, {passive:true});
+  document.addEventListener('keydown', _autoStartMusic);
+})();
+
+</script>
+</body>
+</html>
