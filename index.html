@@ -173,10 +173,11 @@ body::after{
 .hud-right{font-size:clamp(14px,2.2vw,18px);color:var(--red);}
 #gameCanvas{display:block;flex:1;image-rendering:pixelated;width:100%;}
 .game-ctrl{
-  position:absolute;top:46px;right:0;left:0;
+  position:relative;
   display:flex;justify-content:center;gap:4px;z-index:20;
   padding:5px 6px;background:rgba(0,0,0,.72);
   border-bottom:1px solid #1a0a2e;
+  flex-shrink:0;width:100%;
 }
 .ctrl-btn{
   background:rgba(20,5,40,.9);border:2px solid #3a2050;color:#aaa;
@@ -426,7 +427,7 @@ body::after{
              oninput="setMasterVolume(this.value);document.getElementById('volSliderGame').value=this.value;">
       <span class="vol-label" style="color:var(--gold);font-family:var(--font);font-size:18px;min-width:40px;">25%</span>
     </div>
-    <button class="btn" onclick="closeMenuSoundPanel()" style="width:100%">ZAVRIT</button>
+    <button class="btn" onclick="closeMenuSoundPanel()" style="width:100%">ZAVŘÍT</button>
   </div>
 </div>
 
@@ -437,14 +438,14 @@ body::after{
     <span class="hud-center" id="hudScore">SKÓRE: 0</span>
     <span class="hud-right" id="hudLives"></span>
   </div>
-  <canvas id="gameCanvas"></canvas>
   <div class="game-ctrl">
-    <button class="ctrl-btn" onclick="showGameHelp()">? NAPOVEDA</button>
+    <button class="ctrl-btn" onclick="showGameHelp()">? NÁPOVĚDA</button>
     <button class="ctrl-btn" id="soundToggleBtn" onclick="openSoundPanel()">ZVUK</button>
     <button class="ctrl-btn" onclick="togglePause()">II PAUZA</button>
     <button class="ctrl-btn" onclick="exitToMenu()">X KONEC</button>
-    <button class="ctrl-btn" onclick="quickStats()">ZEBRICEK</button>
+    <button class="ctrl-btn" onclick="quickStats()">ŽEBŘÍČEK</button>
   </div>
+  <canvas id="gameCanvas"></canvas>
   <div class="sound-panel" id="soundPanel">
     <div class="sound-box">
       <h3>NASTAVENÍ ZVUKU</h3>
@@ -459,7 +460,7 @@ body::after{
                oninput="setMasterVolume(this.value);document.getElementById('volSliderMenu').value=this.value;">
         <span class="vol-label" style="color:var(--gold);font-family:var(--font);font-size:18px;min-width:40px;">25%</span>
       </div>
-      <button class="btn" onclick="closeSoundPanel()" style="width:100%">ZAVRIT</button>
+      <button class="btn" onclick="closeSoundPanel()" style="width:100%">ZAVŘÍT</button>
     </div>
   </div>
   <div class="pause-overlay" id="pauseOverlay">
@@ -514,9 +515,9 @@ body::after{
   <div class="stats-box">
     <h2>ŽEBŘÍČEK</h2>
     <div class="stats-tabs">
-      <button class="tab-btn active" onclick="loadStats(1,this)">CHYTAČ REKVIZIT</button>
-      <button class="tab-btn" onclick="loadStats(2,this)">KAPR INVIDERS</button>
-      <button class="tab-btn" onclick="loadStats(3,this)">TOWER JUMP</button>
+      <button class="tab-btn active" onclick="loadStats(1,this)">CHYTAČ</button>
+      <button class="tab-btn" onclick="loadStats(2,this)">KAPŘI</button>
+      <button class="tab-btn" onclick="loadStats(3,this)">ROŠT</button>
       <button class="tab-btn" onclick="loadStats(4,this)">HAD</button><button class="tab-btn" onclick="loadStats(41,this)">HAD POMALU</button><button class="tab-btn" onclick="loadStats(42,this)">HAD STŘEDNĚ</button><button class="tab-btn" onclick="loadStats(43,this)">HAD RYCHLE</button>
     </div>
     <div id="lbContent"></div>
@@ -555,10 +556,10 @@ body::after{
   <div class="modal-box" style="max-width:460px;width:94%">
     <h3>ŽEBŘÍČEK</h3>
     <div class="stats-tabs" style="margin:10px 0">
-      <button class="tab-btn active" onclick="loadStatsInline(1,this)">CHYTAČ REKVIZIT</button>
-      <button class="tab-btn" onclick="loadStatsInline(2,this)">KAPR INVIDERS</button>
-      <button class="tab-btn" onclick="loadStatsInline(3,this)">TOWER JUMP</button>
-      <button class="tab-btn" onclick="loadStatsInline(4,this)">HAD</button><button class="tab-btn" onclick="loadStatsInline(41,this)">HAD POMALÝ</button><button class="tab-btn" onclick="loadStatsInline(42,this)">HAD STŘEDNÍ</button><button class="tab-btn" onclick="loadStatsInline(43,this)">HAD RYCHLÝ</button>
+      <button class="tab-btn active" onclick="loadStatsInline(1,this)">CHYTAČ</button>
+      <button class="tab-btn" onclick="loadStatsInline(2,this)">KAPŘI</button>
+      <button class="tab-btn" onclick="loadStatsInline(3,this)">ROŠT</button>
+      <button class="tab-btn" onclick="loadStatsInline(4,this)">HAD</button><button class="tab-btn" onclick="loadStatsInline(41,this)">HAD POMALU</button><button class="tab-btn" onclick="loadStatsInline(42,this)">HAD STŘEDNĚ</button><button class="tab-btn" onclick="loadStatsInline(43,this)">HAD RYCHLE</button>
     </div>
     <div id="lbInline" style="max-height:220px;overflow-y:auto;"></div>
     <button class="btn btn-ghost" onclick="closeStatsOverlay()" style="width:100%;margin-top:10px;">ZAVŘÍT</button>
@@ -1239,7 +1240,7 @@ function game2(canvas){
     }
     if(st.shotCool>0)st.shotCool--;
     st.carpTimer++;
-    const mv=Math.max(7,26-st.level*2);
+    const mv=Math.max(5,18-st.level*2);
     if(st.carpTimer>=mv){
       st.carpTimer=0;
       const alive=st.carps.filter(c=>c.alive);let wall=false;
